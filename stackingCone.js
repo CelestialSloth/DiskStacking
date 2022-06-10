@@ -18,7 +18,7 @@ class StackingCone {
     
   }
 
-  /*Using the current front, this method finds and adds the next child disk in the proper (lowest) location, and updates the front[].*/
+  /*TODO: Using the current front, this method finds and adds the next child disk in the proper (lowest) location, and updates the front[].*/
   nextDiskStackingIteration() {
     //determine child disk candidates
 
@@ -31,7 +31,7 @@ class StackingCone {
     //In front[], insert the child disk in the proper location (probably between the parents but there could be exceptions)
   }
 
-  /*Using the current front, this method determines all the locations where a child disk could be placed. Returns an array of candidates.
+  /*TODO: Using the current front, this method determines all the locations where a child disk could be placed. Returns an array of candidates.
   @return the array of candidates*/
   determineChildCandidates() {
 
@@ -39,14 +39,14 @@ class StackingCone {
     
   }
 
-  /*Given a list of child candidates, this method determines the lowest candidate and returns its index.
+  /*TODO: Given a list of child candidates, this method determines the lowest candidate and returns its index.
   @param candidates: the array of candidate children
   @return the index of the lowest child disk.*/
   findLowestCandidate(candidates) {
     
   }
 
-  /*Given the lowest child candidate, this method determines its proper location in front[] and adds it there. We assume that disks between the parents have already been deleted.
+  /*TODO: Given the lowest child candidate, this method determines its proper location in front[] and adds it there. We assume that disks between the parents have already been deleted.
   @param child: the child candidate to be added to front[]*/
   addChildToFront(child) {
     
@@ -58,16 +58,41 @@ class StackingCone {
     fill(0);
     let radius = windowWidth;
     angleMode(DEGREES);
-    line(this.vertexX, this.vertexY, this.vertexX+radius*cos(90-this.angle/2), this.vertexY-radius*sin(90-this.angle/2));
-    line(this.vertexX, this.vertexY, this.vertexX-radius*cos(90-this.angle/2), this.vertexY-radius*sin(90-this.angle/2));
+
+    push();
+    this.createTransform();
+    
+    strokeWeight(3/windowHeight);
+    line(this.vertexX, this.vertexY, this.vertexX+cos(90-this.angle/2), this.vertexY+sin(90-this.angle/2));
+    line(this.vertexX, this.vertexY, this.vertexX-cos(90-this.angle/2), this.vertexY+sin(90-this.angle/2));
 
     //draw all of the disks
     for (let disk of this.disks) {
-      disk.display();
+      disk.displayDisk();
     }
+
+    //add the text to the disks
+    for(let disk of this.disks) {
+      push();
+      translate(disk.x, disk.y);
+      scale(1,-1);
+      disk.displayDiskText();
+      pop();
+    }
+
+    pop();
+
   }
 
-  /**A method to manually add disks to the cone. This method (not anything in disk.js) should be used.
+  /*Puts the canvas into the mode used to draw everything.*/
+  createTransform() {
+    translate(windowWidth/2, windowHeight/2);
+    //before, we're assuming 1 = 100%
+    scale(windowHeight/2);
+    scale(1,-1);
+  }
+
+  /*A method to manually add disks to the cone. This method (not anything in disk.js) should be used.
   @param x, y: the coordinates for the new disk
   @param radius: the radius of the new disk*/
   addDiskManually(x, y, radius) {
@@ -79,6 +104,7 @@ class StackingCone {
   /*Finds the location of a child Disk given two parents. Does not check for overlap. Assumes all disks have same radius.
   @param or parent1, pare two disks that could be parents
   @return: the child disk (if there is one) OR some indicator that no such child exists.*/
+  //TODO: add opposedness test
   childDisk(parent1, parent2) {
     let radius = parent1.radius; //radius for all disks
 
@@ -113,7 +139,7 @@ class StackingCone {
 
     let child;
     //return the highest child
-    if(childLocation1.y < childLocation2.y) {
+    if(childLocation1.y > childLocation2.y) {
       child = new Disk(childLocation1.x, childLocation1.y, radius);
     } else {
       child = new Disk(childLocation2.x, childLocation2.y, radius);
@@ -128,6 +154,14 @@ class StackingCone {
     return child;
   }
 
+  /*TODO: Test whether a child is situated between its two parents. Does not account for rotation.
+  @param child: the child Disk
+  @param parent1, parent2: the two parent Disks
+  @return true/false: whether the child is actually between both parents.*/
+  isBetweenParents(child, parent1, parent2) {
+    
+  }
+  
   /*Finds the actual distance between two disks, accounting for rotation.
   @param disk1, disk2: the two Disks to find the distance between
   @return float: the distance between the disks*/
@@ -147,7 +181,7 @@ class StackingCone {
 
     angleMode(DEGREES);
     //if on the right side of cone, rotate to left
-    if(disk.x < this.vertexX) {
+    if(disk.x > this.vertexX) {
       vertexToDiskVector.rotate(this.angle);
     }
     //if on left side of cone, rotate all the way around, ending up on the right
@@ -188,8 +222,7 @@ class StackingCone {
   isOffCone(disk) {
 
     //first, check if it's below the cone somehow
-    if(disk.y > this.vertexY) {
-      print("Disk is below cone");
+    if(disk.y < this.vertexY) {
       return true;
     }
     
@@ -201,17 +234,17 @@ class StackingCone {
     
     //if on left side, check if over left
     if(disk.x < this.vertexX) {
-      let leftConeSide = createVector(-cos(90-this.angle/2), -sin(90-this.angle/2));
+      let leftConeSide = createVector(-cos(90-this.angle/2), sin(90-this.angle/2));
       angleBtwnSideAndDisk = vertexToDisk.angleBetween(leftConeSide);
     }
     //if on right side, check if over right
     else {
-      let rightConeSide = createVector(cos(90-this.angle/2), -sin(90-this.angle/2));
+      let rightConeSide = createVector(cos(90-this.angle/2), sin(90-this.angle/2));
       angleBtwnSideAndDisk = rightConeSide.angleBetween(vertexToDisk);
     }
 
     //the disk is "off" the cone if angleBtwnSideAndDisk > 0 (just because of how angleBtwnSideAndDisk was calculated)
-    if(angleBtwnSideAndDisk > 0) {
+    if(angleBtwnSideAndDisk < 0) {
       return true;
     }
     return false;
