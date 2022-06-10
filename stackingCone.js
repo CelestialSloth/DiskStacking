@@ -8,9 +8,51 @@ class StackingCone {
     this.angle = angle;
     this.vertexX = vertexX;
     this.vertexY = vertexY;
-    this.disks = [];
+    this.disks = []; //contains actual disk objects
+    this.diskNumber = 1;
+    this.front = []; //the indices of disks (from disks[]) in the front will be contained in this array, in order, from left to right
   }
 
+  /*TODO: Automatically sets up the default front*/
+  setUpFirstFront() {
+    
+  }
+
+  /*Using the current front, this method finds and adds the next child disk in the proper (lowest) location, and updates the front[].*/
+  nextDiskStackingIteration() {
+    //determine child disk candidates
+
+    //find lowest candidate
+
+    //add lowest candidate to disks[]
+
+    //In front[], delete disks between parents of the lowest disk
+
+    //In front[], insert the child disk in the proper location (probably between the parents but there could be exceptions)
+  }
+
+  /*Using the current front, this method determines all the locations where a child disk could be placed. Returns an array of candidates.
+  @return the array of candidates*/
+  determineChildCandidates() {
+
+    //Note: make sure no candidates are overlapping with other disks in the front!
+    
+  }
+
+  /*Given a list of child candidates, this method determines the lowest candidate and returns its index.
+  @param candidates: the array of candidate children
+  @return the index of the lowest child disk.*/
+  findLowestCandidate(candidates) {
+    
+  }
+
+  /*Given the lowest child candidate, this method determines its proper location in front[] and adds it there. We assume that disks between the parents have already been deleted.
+  @param child: the child candidate to be added to front[]*/
+  addChildToFront(child) {
+    
+  }
+  
+  
   /*Draws the cone*/
   display() {
     fill(0);
@@ -23,6 +65,15 @@ class StackingCone {
     for (let disk of this.disks) {
       disk.display();
     }
+  }
+
+  /**A method to manually add disks to the cone. This method (not anything in disk.js) should be used.
+  @param x, y: the coordinates for the new disk
+  @param radius: the radius of the new disk*/
+  addDiskManually(x, y, radius) {
+    newDisk = new Disk(x, y, radius, this.diskNumber);
+    this.disks.push(newDisk);
+    this.diskNumber ++;
   }
 
   /*Finds the location of a child Disk given two parents. Does not check for overlap. Assumes all disks have same radius.
@@ -88,7 +139,6 @@ class StackingCone {
     return min(nonRotatedDistance, rotatedDistance);
   }
 
-  
   /*Returns the disk's equivalent location on the other side of the cone (due to rotation)
   @param disk the Disk to rotate
   @return (Disk) a Disk in the equivalent position*/
