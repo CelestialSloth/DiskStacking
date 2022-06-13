@@ -106,11 +106,17 @@ class StackingCone {
       let continueWhileLoop = true;
       while(continueWhileLoop) {
         let diskToCheck = this.extendedDisks[this.extendedFront[extendedFrontIndex]]; //the disk we're checking
-        let potentialChild = this.childDisk(this.disks[this.front[frontIndex]], this.extendedDisks[this.extendedFront[extendedFrontIndex]]);
+        
+        if(diskToCheck == null) {
+          return candidates;
+        }
+        
+        let potentialChild = this.childDisk(frontDisk, diskToCheck);
 
         //if a child could be produced, add it as a candidates
         if(potentialChild == null) {
-          continueWhileLoop = false;
+          return candidates;
+          //continueWhileLoop = false;
         } else {
           candidates.push(potentialChild);
           extendedFrontIndex ++;
@@ -118,7 +124,7 @@ class StackingCone {
       }
     }
 
-    return candidates;
+    //return candidates;
   }
 
   /*TEST: Given a list of candidates, this method deletes candidates that overlap with other disks and returns an edited array.
@@ -269,10 +275,14 @@ class StackingCone {
     this.diskNumber ++;
   }
 
-  /*Finds the location of a child Disk given two parents. Does not check for overlap. Assumes all disks have same radius.
+  /*Finds the location of a child Disk given two parents. Does not check for overlap. Assumes all disks have same radius. Does not account for rotation.
   @param or parent1, pare two disks that could be parents
   @return: the child disk (if there is one) OR some indicator that no such child exists.*/
   childDisk(parent1, parent2) {
+
+    print("Inside childDisk. Trying to find a child between these parents: ");
+    print("  * "+parent1.x + "," + parent1.y);
+    print("  * "+parent2.x + "," + parent2.y);
     let radius = parent1.radius; //radius for all disks
 
     //determine the distance between the disks
@@ -286,19 +296,20 @@ class StackingCone {
 
 
     //determine if we need to rotate parent2 to have the minimum *physical* distance between the parent disks. Create new variable for parent2 based on this.
-    let parent2New;
-    if(distBtwnParents < dist(parent1.x, parent1.y, parent2.x, parent2.y)) {
+    /*let parent2New;
+    if(distBtwnParents < dist(parent1.x, parent1.y, parent2.x, parent2.y) && distBtwnParents > 0) {
+      print("rotating");
       parent2New = this.rotatedDisk(parent2);
     } else {
       parent2New = parent2;
-    }
+    }*/
 
     //determine the child's position, using simplifying assumptions about radii and angles
-    let vectorP1ToP2 = createVector(parent2New.x-parent1.x, parent2New.y-parent1.y); //vector pointing in direction of parent2New, if placed at parent1
+    let vectorP1ToP2 = createVector(parent2.x-parent1.x, parent2.y-parent1.y); //vector pointing in direction of parent2New, if placed at parent1
     let normalVector = createVector(-vectorP1ToP2.y, vectorP1ToP2.x).normalize(); //vector that is normal to vectorP1ToP2
     let scaledNormalVector = p5.Vector.mult(normalVector, 0.5 * sqrt((16*radius*radius) - (distBtwnParents*distBtwnParents))); //scale normalVector so when added to point halfway between parent1 and parent2New, final vector is position of a child disk
     //point that is halfway between the two parent vectors
-    let halfwayPoint = createVector( (parent1.x+parent2New.x)/2, (parent1.y+parent2New.y)/2);
+    let halfwayPoint = createVector( (parent1.x+parent2.x)/2, (parent1.y+parent2.y)/2);
 
     //two possibilities for children
     let childLocation1 = p5.Vector.add(scaledNormalVector, halfwayPoint);
@@ -313,14 +324,9 @@ class StackingCone {
     }
 
     //run opposedness test (ie, is the child actually "between" the two parents)
-    if(!this.isBetweenParents(child, parent1, parent2New)) {
+    if(!this.isBetweenParents(child, parent1, parent2)) {
       print("child is not between parents, returning null");
       return null;
-    }
-
-    //check if the new child is on the cone or not. If not, rotate it.
-    if(this.isOffCone(child)) {
-      child = this.rotatedDisk(child);
     }
 
     //finally, return the child disk
@@ -343,6 +349,9 @@ class StackingCone {
     let childAngle = childVector.angleBetween(unitXVector);
     let parent1Angle = parent1Vector.angleBetween(unitXVector);
     let parent2Angle = parent2Vector.angleBetween(unitXVector);
+    print("parent1Angle: " +parent1Angle);
+    print("childAngle: " + childAngle);
+    print("parent2Angle: " + parent2Angle);
 
     //check if the child angle is between the two parent angles
     if(childAngle > min(parent1Angle, parent2Angle && childAngle < max(parent1Angle, parent2Angle))) {
@@ -435,7 +444,7 @@ class StackingCone {
     }
     
     //create a vector pointing to disk if positioned at cone vertex
-    let vertexToDisk = vertexToDisk(disk);
+    let vertexToDisk = this.vertexToDisk(disk);
     
     let angleBtwnSideAndDisk;
     angleMode(DEGREES);

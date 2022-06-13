@@ -8,7 +8,8 @@ var exampleDisk2;
 var childDisk;
 var rotatedDisk;
 var childCandidates;
-
+var childX;
+var childY;
 
 function setup() {
   print("started setup");
@@ -50,14 +51,16 @@ function setup() {
   print("testing generateExtendedFront");
   let extendedFront = [];
   extendedFront = exampleCone.generateExtendedFront();
-
-  print(exampleCone.front);
   
   //test determineChildCandidates
   print("testing candidates");
   childCandidates = exampleCone.determineChildCandidates();
-  print(childCandidates.length);
+  //print(childCandidates.length);
   print("done testing candidates");
+  //print(childCandidates);
+  childX = childCandidates[0].x;
+  childY = childCandidates[0].y;
+  print(childX + ", " + childY);
   
 }
 
@@ -68,9 +71,15 @@ function draw() {
   
   //draw the cones
   exampleCone.display();
+
+  push();
+  exampleCone.createTransform();
+  strokeWeight(5/windowHeight);
   for (disk of childCandidates) {
-    disk.display();
+    disk.displayDisk([255,0,0]);
   }
+  pop();
+
   
 }
 
