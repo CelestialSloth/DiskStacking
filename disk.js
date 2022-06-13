@@ -5,6 +5,7 @@ class Disk {
   @param radius: the radius of the Disk
   @param text *optional*: any text the disk should display, ie a number*/
   constructor(x, y, radius, text='') {
+    
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -12,8 +13,8 @@ class Disk {
   }
 
   /*Draws the Disk*/
-  displayDisk() {
-    fill(200, 200, 200);
+  displayDisk(color = [200, 200, 200]) {
+    fill(color);
     ellipse(this.x, this.y, this.radius*2, this.radius*2);
     
   }
@@ -21,7 +22,7 @@ class Disk {
   /*Draws the Disk text. Is a separate method because of how we use transforms in stackingCone*/
   displayDiskText() {
     fill(0);
-    textSize(30/windowHeight);
+    textSize(0.08);
     textAlign(CENTER,CENTER);
     noStroke();
     text(this.text, 0, 0);
