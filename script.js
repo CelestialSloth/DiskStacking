@@ -16,17 +16,14 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
     background(255);
   angleMode(DEGREES);
-  coneAngle = 30;
+  coneAngle = 70;
   //exampleCone = new StackingCone(windowWidth/2, windowHeight-windowWidth/(4*tan(coneAngle/2)), coneAngle);
   print("creating exampleCone");
   exampleCone = new StackingCone(0, -0.5, coneAngle);
 
   print("setUpFirstFront");
   exampleCone.setUpFirstFront(0.1);
-  
-
-  //let candidates = [];
-  
+    
   //test generateExtendedFront
   print("testing generateExtendedFront");
   let extendedFront = [];
@@ -51,7 +48,7 @@ function draw() {
   exampleCone.createTransform();
   strokeWeight(3/windowHeight);
   for (disk of childCandidates) {
-    disk.displayDisk([255,0,0]);
+    disk[0].displayDisk([255,0,0]);
   }
   
   pop();
@@ -60,18 +57,18 @@ function draw() {
 
 function drawAxes() {
   //reference axes for debugging
-  /*push();
+  push();
   exampleCone.createTransform();
-  stroke(255,0,0);
-  fill(255,0,0);
+  stroke(255,175,175);
+  fill(255,175,175);
   strokeWeight(5/windowHeight);
   line(-windowWidth/windowHeight, 0, windowWidth/windowHeight, 0);
   line(0, -1, 0, 1);
   pop();
   textSize(12);
-  fill(255,0,0);
+  fill(255,175,175);
   noStroke();
   text('x = 0', windowWidth/2+10,30);
   text('y = 0',30, windowHeight/2-10);
-  stroke(0);*/
+  stroke(0);
 }

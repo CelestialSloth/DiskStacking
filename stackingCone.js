@@ -1,7 +1,7 @@
 /**This class represents the Cone, which controls the disk stacking. It contains methods related to disk stacking calculations and tasks.*/
 
-/**Delete:  indexToRotate > 20
-Test xDistanceBetweenDisks for angular distances. Note that this could overestimate distances.
+/**
+Test angularDistanceBetweenDisks for angular distances. Note that this could overestimate distances (ie, a curved 4*r is a little less than 4*r)
 
 Note: could have issues finding children when parents are at say -pi/pi based on how the program is running the opposedness test. (The child wouldn't register as being "between" parents.)
 */
@@ -14,8 +14,10 @@ class StackingCone {
     this.angle = angle;
     this.vertexX = vertexX;
     this.vertexY = vertexY;
+    
+    this.diskNumber = 0; //used as a tag to identify unique disks
+    
     this.disks = []; //contains actual disk instances
-    this.diskNumber = 1;
     this.front = []; //the indices of disks (from disks[]) in the front will be contained in this array, in order, from left to right. Ex: [1, 2, 4, 3, 7, 5, 6...]
 
     //these will be used in several functions, and will contain extended versions of the front and disks. (ie, versions where disks have been rotated to make the front seem longer)
@@ -30,12 +32,10 @@ class StackingCone {
   setUpFirstFront(radius) {
   
     let firstdisk = new Disk(0,-(abs(this.vertexY)-radius/sin(this.angle/2)),radius);
+    this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
     let firstfront = 0;
     this.front.push(firstfront);
-
-    return this.disks
-    return this.front
   }
 
   /*TODO:Using the current front, this method finds and adds the next child disk in the proper (lowest) location, and updates the front[].*/
@@ -44,7 +44,10 @@ class StackingCone {
     let candidates = determineChildCandidates;
 
     //find lowest candidate
-    lowestCandidate = this.findLowestCandidate(candidates);
+    let lowestCandidate = this.findLowestCandidate(candidates);
+
+    //give it an id
+    this.assignNextDiskID(lowestCandidate[0]);
     
     //add lowest candidate to disks[]
     disks.push(lowestCandidate);
@@ -73,7 +76,8 @@ class StackingCone {
   }
 
   /*Creates a list of candidates, but does not check for overlap
-  @return a list of child candidates, ignoring whether they are overlapping with other disks.*/
+  @return a list of child candidates, ignoring whether they are overlapping with other disks.
+  @return a list of arrays: [ [child, parent1 index in front[], parent2 index in front[]]*/
   candidatesIgnoreOverlap() {
     let candidates = []; //an empty array to be filled with possible child candidates
     
@@ -102,13 +106,12 @@ class StackingCone {
           return candidates;
           //continueWhileLoop = false;
         } else {
-          candidates.push(potentialChild);
+          candidates.push([potentialChild, frontIndex, extendedFrontIndex]);
           extendedFrontIndex ++;
         }
       }
     }
 
-    //return candidates;
   }
  
   /*TEST: Given a list of candidates, this method deletes candidates that overlap with other disks and returns an edited array.
@@ -116,25 +119,30 @@ class StackingCone {
   @return candidates: the edited array
   * The candidates array passed in should get edited, no need to have a return at all probably*/
   deleteOverlappingCandidates(candidates) {
+    
     for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
+      let candidateToCheck = (candidates[candidateIndex])[0];
+      let hasOverlap = false;
       for (let diskIndex of this.front) {
-        if(this.isOverlap(this.disks[diskIndex], candidates[candidateIndex])) {
-          candidates.splice(candidateIndex);
+        let diskToCheck = this.disks[diskIndex];
+        if(this.isOverlap(diskToCheck, candidateToCheck)) {
+          hasOverlap = true;
         }
       }
+      if(hasOverlap) {candidates.splice(candidateIndex);}
     }
     return candidates;
   }
   
   /*Given an array of disks, this method returns an array of disks such that all of them are properly located within the cone (fundamental domain).
-  @param disksToRotate: an array of disks to get rotated
+  @param candidates: an array of candidates to get rotated. Remember, candidates come in an array like this: [[disk, parent1 index, parent2 index], ...]
   @return rotatedDisks: an array with copies of the disks which has now been rotated */
-  rotateOntoCone(disksToRotate) {
+  rotateOntoCone(candidates) {
     let rotatedDisks = [];
 
-    for (let disk of disksToRotate) {
-      if(this.isOffCone(disk)) {
-        rotatedDisks.push(this.rotatedDisk(disk));
+    for (let disk of candidates) {
+      if(this.isOffCone(disk[0])) {
+        rotatedDisks.push([this.rotatedDisk(disk[0]), disk[1], disk[2]]);
       } else {
         rotatedDisks.push(disk);
       }
@@ -180,15 +188,15 @@ class StackingCone {
   }
 
   /*Given a list of child candidates, this method determines the lowest candidate and returns its index.
-  @param candidates: the array of candidate children
+  @param candidates: the array of arrays containing candidate children. [[candidate, parent1 index, parent2 index], ...]
   @return the index of the lowest child disk.*/
   findLowestCandidate(candidates) {
     
     let lowestDisk = candidates[0];
-    let smallestDist = distanceToVertex(lowestDisk);
+    let smallestDist = distanceToVertex(lowestDisk[0]);
 
     for (let disk of candidates) {
-      newDist = distanceToVertex(disk);
+      newDist = distanceToVertex(disk[0]);
       if(newDist < smallestDist){
         smallestDist = newDist;
         lowestDisk = disk;
@@ -387,7 +395,7 @@ class StackingCone {
     let vertexToDisk = this.vertexToDisk(disk);
     angleMode(DEGREES);
     vertexToDisk.rotate(360-this.angle);
-    return new Disk(this.vertexX + vertexToDisk.x, this.vertexY + vertexToDisk.y, disk.radius);
+    return new Disk(this.vertexX + vertexToDisk.x, this.vertexY + vertexToDisk.y, disk.radius, disk.id);
   }
 
   /*Generates a disk rotated to the left
@@ -397,7 +405,7 @@ class StackingCone {
     let vertexToDisk = this.vertexToDisk(disk);
     angleMode(DEGREES);
     vertexToDisk.rotate(this.angle);
-    return new Disk(this.vertexX + vertexToDisk.x, this.vertexY + vertexToDisk.y, disk.radius);
+    return new Disk(this.vertexX + vertexToDisk.x, this.vertexY + vertexToDisk.y, disk.radius, disk.id);
   }
 
   /*Returns the distance of a disk to the cone's vertex
@@ -437,7 +445,7 @@ class StackingCone {
     }
 
     //add the text to the disks
-    for(let disk of this.disks) {
+    for(let disk of this.extendedDisks) {
       push();
       translate(disk.x, disk.y);
       scale(1,-1);
@@ -457,5 +465,10 @@ class StackingCone {
     scale(1,-1);
   }
 
+  /*assigns the next disknumber to this disk*/
+  assignNextDiskID(disk) {
+    disk.id = this.diskNumber;
+    this.diskNumber ++;
+  }
 
 }

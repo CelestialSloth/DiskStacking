@@ -4,12 +4,12 @@ class Disk {
   @param x, y: the coordinates of the Disk
   @param radius: the radius of the Disk
   @param text *optional*: any text the disk should display, ie a number*/
-  constructor(x, y, radius, text='') {
+  constructor(x, y, radius, id = -1) {
     
     this.x = x;
     this.y = y;
     this.radius = radius;
-    this.text = text;
+    this.id = id;
   }
 
   /*Draws the Disk*/
@@ -25,7 +25,11 @@ class Disk {
     textSize(0.08);
     textAlign(CENTER,CENTER);
     noStroke();
-    text(this.text, 0, 0);
+    text(this.id, 0, 0);
   }
 
+  /*Compares whether two disks are the same.*/
+  static isEqual(disk1, disk2) {
+    return (disk1.x == disk2.x && disk2.y == disk.y && disk1.radius == disk2.radius) || disk1.id == disk2.id;
+  }
 }
