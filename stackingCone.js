@@ -1,7 +1,10 @@
 /**This class represents the Cone, which controls the disk stacking. It contains methods related to disk stacking calculations and tasks.*/
 
 /**Delete:  indexToRotate > 20
-Test xDistanceBetweenDisks for angular distances.*/
+Test xDistanceBetweenDisks for angular distances. Note that this could overestimate distances.
+
+Note: could have issues finding children when parents are at say -pi/pi based on how the program is running the opposedness test. (The child wouldn't register as being "between" parents.)
+*/
 
 class StackingCone {
   /* Constructor for the cone
@@ -60,43 +63,24 @@ class StackingCone {
     //generate an array of child candidates, but they might overlap
     candidates = this.candidatesIgnoreOverlap();
         
-    //for each candidate, make sure it's not overlapping with other disks in the front! Use extended front to check
-    //this.deleteOverlappingCandidates(candidates);
+    //for each candidate, make sure it's not overlapping with other disks in the front!
+    this.deleteOverlappingCandidates(candidates);
     
     //rotate all candidates back onto the cone
-    //candidates = this.rotateOntoCone(candidates);
+    candidates = this.rotateOntoCone(candidates);
 
     return candidates;
   }
 
-  /*Given an array of disks, this method returns an array of disks such that all of them are properly located within the cone (fundamental domain).
-  @param disksToRotate: an array of disks to get rotated
-  @return rotatedDisks: an array with copies of the disks which has now been rotated */
-  rotateOntoCone(disksToRotate) {
-    rotatedDisks = [];
-
-    for (let disk of disksToRotate) {
-      if(isOffCone(disk)) {
-        rotatedDisks.push(rotatedDisk(disk));
-      } else {
-        rotatedDisks.push(disk);
-      }
-    }
-
-    return rotatedDisks;
-  }
-  
   /*Creates a list of candidates, but does not check for overlap
   @return a list of child candidates, ignoring whether they are overlapping with other disks.*/
   candidatesIgnoreOverlap() {
-    print("Inside candidatesIgnoreOverlap");
     let candidates = []; //an empty array to be filled with possible child candidates
     
     //generate extended front, where we rotate disks from the left until they reach more than 4r x units away from the rightmost disk
     this.generateExtendedFront();
     
     //for each disk in original front
-    print("for each disk in original front");
     for(let frontIndex = 0; frontIndex < this.front.length; frontIndex ++) {
       let frontDisk = this.disks[this.front[frontIndex]]; //the disk we're starting from
       
@@ -126,15 +110,15 @@ class StackingCone {
 
     //return candidates;
   }
-
+ 
   /*TEST: Given a list of candidates, this method deletes candidates that overlap with other disks and returns an edited array.
   @param candidates: the array of candidates
   @return candidates: the edited array
   * The candidates array passed in should get edited, no need to have a return at all probably*/
   deleteOverlappingCandidates(candidates) {
     for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
-      for (let disk of front) {
-        if(isOverlap(disk, candidates[candidateIndex])) {
+      for (let diskIndex of this.front) {
+        if(this.isOverlap(this.disks[diskIndex], candidates[candidateIndex])) {
           candidates.splice(candidateIndex);
         }
       }
@@ -142,6 +126,23 @@ class StackingCone {
     return candidates;
   }
   
+  /*Given an array of disks, this method returns an array of disks such that all of them are properly located within the cone (fundamental domain).
+  @param disksToRotate: an array of disks to get rotated
+  @return rotatedDisks: an array with copies of the disks which has now been rotated */
+  rotateOntoCone(disksToRotate) {
+    let rotatedDisks = [];
+
+    for (let disk of disksToRotate) {
+      if(this.isOffCone(disk)) {
+        rotatedDisks.push(this.rotatedDisk(disk));
+      } else {
+        rotatedDisks.push(disk);
+      }
+    }
+
+    return rotatedDisks;
+  }
+    
   /*For use with determineChildCandidates(). Creates an "extended" front where some disks from the left are copied and rotated rightward. It updates this.extendedFront() and this.extendedDisks()*/
   generateExtendedFront() {
     let rightmostFrontDisk = this.disks[this.front.slice(-1)]; //last disk in front
@@ -150,17 +151,17 @@ class StackingCone {
     this.extendedFront = [...this.front];
     this.extendedDisks = [...this.disks];
 
-    let xDistance; //represents the true distance between rightmostFrontDisk and another disk in the front.
+    let aDistance; //represents the true distance between rightmostFrontDisk and another disk in the front.
     let indexToRotate = 0; //the index of the next disk in the front to possibly rotate
     let continueWhileLoop = true;
 
-    //generate extended front, where we rotate disks from the left until they reach more than 4r x units away from the rightmost disk
+    //generate extended front, where we rotate disks from the left until they reach more than 4r units away from the rightmost disk
     while(continueWhileLoop) {
       let diskToRotate = this.extendedDisks[this.extendedFront[indexToRotate]];
-      xDistance = this.angularDistanceBtwnDisks(rightmostFrontDisk, diskToRotate);
+      aDistance = this.angularDistanceBtwnDisks(rightmostFrontDisk, diskToRotate);
 
       //if the disks are too far apart, end this while loop
-      if(xDistance > 4*radius) {
+      if(aDistance > 4*radius) {
         continueWhileLoop = false;
       } 
       //otherwise, rotate the other disk to the left and add it to the extended front
@@ -176,26 +177,6 @@ class StackingCone {
     /*let rotatedDisk = this.rotateRight(this.extendedDisks[indexToRotate]);
     this.extendedDisks.push(rotatedDisk);
     this.extendedFront.push(this.extendedDisks.length-1);*/
-  }
-
-  /*Used in generateExtendedFront(). Finds the "angular" distance between disks (ie, [θ1-θ2]*r) and reports it. It does not account for rotation because that could cause problems with small fronts.
-  @param disk1, disk2: the two disks to check the distance between
-  @return the "angular" distance between the given disks*/
-  angularDistanceBtwnDisks(disk1, disk2) {
-    /*let nonRotatedDistance = abs(disk1.x - disk2.x);
-    let rotatedDisk2Pos = this.rotatedDisk(disk2);
-    let rotatedDistance = abs(disk1.x - rotatedDisk2Pos.x);
-
-    return min(nonRotatedDistance, rotatedDistance);*/
-    //angular distance
-    let vertexToDisk1 = this.vertexToDisk(disk1);
-    let vertexToDisk2 = this.vertexToDisk(disk2);
-    let distToVertex = min(this.distanceToVertex(disk1), this.distanceToVertex(disk2)); //Does this make sense? probably...
-
-    angleMode(RADIANS);
-    let angularDist = abs(vertexToDisk1.angleBetween(vertexToDisk2)) * distToVertex;
-
-    return angularDist;
   }
 
   /*Given a list of child candidates, this method determines the lowest candidate and returns its index.
@@ -224,65 +205,10 @@ class StackingCone {
   }
   
   
-  /*Draws the cone*/
-  display() {
-    fill(0);
-    angleMode(DEGREES);
-    push();
-    let radius = 1.8;
-    this.createTransform();
-    
-    strokeWeight(0.008);
-    line(this.vertexX, this.vertexY, this.vertexX+radius*cos(90-this.angle/2), this.vertexY+radius*sin(90-this.angle/2));
-    line(this.vertexX, this.vertexY, this.vertexX-radius*cos(90-this.angle/2), this.vertexY+radius*sin(90-this.angle/2));
-
-    //draw all disks
-    for(let disk of this.extendedDisks) {
-      disk.displayDisk(240);
-    }
-    //draw disks that are actually in the cone (slightly darker)
-    for (let disk of this.disks) {
-      disk.displayDisk(180);
-    }
-
-    //add the text to the disks
-    for(let disk of this.disks) {
-      push();
-      translate(disk.x, disk.y);
-      scale(1,-1);
-      disk.displayDiskText();
-      pop();
-    }
-
-    pop();
-
-  }
-
-  /*Puts the canvas into the mode used to draw everything.*/
-  createTransform() {
-    translate(windowWidth/2, windowHeight/2);
-    //before, we're assuming 1 = 100%
-    scale(windowHeight/2);
-    scale(1,-1);
-  }
-
-  /*A method to manually add disks to the cone. This method (not anything in disk.js) should be used.
-  @param x, y: the coordinates for the new disk
-  @param radius: the radius of the new disk*/
-  addDiskManually(x, y, radius) {
-    newDisk = new Disk(x, y, radius, this.diskNumber);
-    this.disks.push(newDisk);
-    this.diskNumber ++;
-  }
-
   /*Finds the location of a child Disk given two parents. Does not check for overlap. Assumes all disks have same radius. Does not account for rotation.
-  @param or parent1, pare two disks that could be parents
-  @return: the child disk (if there is one) OR some indicator that no such child exists.*/
+  @param parent1, parent2: two disks that could be parents
+  @return: the child disk OR null if no such child exists.*/
   childDisk(parent1, parent2) {
-
-    print("Inside childDisk. Trying to find a child between these parents: ");
-    print("  * "+parent1.x + "," + parent1.y);
-    print("  * "+parent2.x + "," + parent2.y);
     let radius = parent1.radius; //radius for all disks
 
     //determine the distance between the disks
@@ -294,21 +220,10 @@ class StackingCone {
       return null;
     }
 
-
-    //determine if we need to rotate parent2 to have the minimum *physical* distance between the parent disks. Create new variable for parent2 based on this.
-    /*let parent2New;
-    if(distBtwnParents < dist(parent1.x, parent1.y, parent2.x, parent2.y) && distBtwnParents > 0) {
-      print("rotating");
-      parent2New = this.rotatedDisk(parent2);
-    } else {
-      parent2New = parent2;
-    }*/
-
     //determine the child's position, using simplifying assumptions about radii and angles
-    let vectorP1ToP2 = createVector(parent2.x-parent1.x, parent2.y-parent1.y); //vector pointing in direction of parent2New, if placed at parent1
+    let vectorP1ToP2 = createVector(parent2.x-parent1.x, parent2.y-parent1.y); //vector pointing in direction of parent2, if placed at parent1
     let normalVector = createVector(-vectorP1ToP2.y, vectorP1ToP2.x).normalize(); //vector that is normal to vectorP1ToP2
-    let scaledNormalVector = p5.Vector.mult(normalVector, 0.5 * sqrt((16*radius*radius) - (distBtwnParents*distBtwnParents))); //scale normalVector so when added to point halfway between parent1 and parent2New, final vector is position of a child disk
-    //point that is halfway between the two parent vectors
+    let scaledNormalVector = normalVector.mult(0.5 * sqrt((16*radius*radius) - (distBtwnParents*distBtwnParents))); //scale normalVector so when added to point halfway between parent1 and parent2, final vector is position of a child disk
     let halfwayPoint = createVector( (parent1.x+parent2.x)/2, (parent1.y+parent2.y)/2);
 
     //two possibilities for children
@@ -349,9 +264,6 @@ class StackingCone {
     let childAngle = childVector.angleBetween(unitXVector);
     let parent1Angle = parent1Vector.angleBetween(unitXVector);
     let parent2Angle = parent2Vector.angleBetween(unitXVector);
-    print("parent1Angle: " +parent1Angle);
-    print("childAngle: " + childAngle);
-    print("parent2Angle: " + parent2Angle);
 
     //check if the child angle is between the two parent angles
     if(childAngle > min(parent1Angle, parent2Angle && childAngle < max(parent1Angle, parent2Angle))) {
@@ -362,15 +274,94 @@ class StackingCone {
     }
   }
   
-  /*Finds the actual distance between two disks, accounting for rotation.
+ 
+  /*test if there is an overlap between disks
+  @param disk1 disk2: two disks
+  @return true if there is an overlap, false if no 
+  overlap*/
+  isOverlap(disk1,disk2){ 
+    let tolerance = 10**(-10); //account for rounding and such
+    if (this.minDistanceBtwnDisks(disk1, disk2) < 2*disk1.radius - tolerance) {
+      return true;
+      print ("there is an overlap");
+    }
+    else {
+      return false;
+      print ("no overlap");
+    } 
+    }
+
+  /*Determines whether a disk's center will be drawn off the cone.
+  @param disk: the disk to check
+  @return T/F: whether the disk is off the cone or not*/
+  isOffCone(disk) {
+
+    //first, check if it's below the cone somehow
+    if(disk.y < this.vertexY) {
+      return true;
+    }
+    
+    //create a vector pointing to disk if positioned at cone vertex
+    let vertexToDisk = this.vertexToDisk(disk);
+    
+    let angleBtwnSideAndDisk;
+    angleMode(DEGREES);
+    
+    //if on left side, check if over left
+    if(disk.x < this.vertexX) {
+      let leftConeSide = createVector(-cos(90-this.angle/2), sin(90-this.angle/2));
+      angleBtwnSideAndDisk = vertexToDisk.angleBetween(leftConeSide);
+    }
+    //if on right side, check if over right
+    else {
+      let rightConeSide = createVector(cos(90-this.angle/2), sin(90-this.angle/2));
+      angleBtwnSideAndDisk = rightConeSide.angleBetween(vertexToDisk);
+    }
+
+    //the disk is "off" the cone if angleBtwnSideAndDisk > 0 (just because of how angleBtwnSideAndDisk was calculated)
+    if(angleBtwnSideAndDisk < 0) {
+      return true;
+    }
+    return false;
+  }
+
+  /*Used in generateExtendedFront(). Finds the "angular" distance between disks (ie, [θ1-θ2]*r) and reports it. It does not account for rotation because that could cause problems with small fronts.
+  @param disk1: the disk we want the "angular" distance from. Used as the base "radius"
+  @param disk2: the other disk to compare
+  @return the "angular" distance between the given disks*/
+  angularDistanceBtwnDisks(disk1, disk2) {
+    /*let nonRotatedDistance = abs(disk1.x - disk2.x);
+    let rotatedDisk2Pos = this.rotatedDisk(disk2);
+    let rotatedDistance = abs(disk1.x - rotatedDisk2Pos.x);
+
+    return min(nonRotatedDistance, rotatedDistance);*/
+    //angular distance
+    let vertexToDisk1 = this.vertexToDisk(disk1);
+    let vertexToDisk2 = this.vertexToDisk(disk2);
+    let distToVertex = this.distanceToVertex(disk1); //Assumes we're using the first disk as the comparison
+
+    angleMode(RADIANS);
+    let angularDist = abs(vertexToDisk1.angleBetween(vertexToDisk2)) * distToVertex;
+
+    return angularDist;
+  }
+
+   /*Finds the actual distance between two disks, accounting for rotation.
+  @param disk1, disk2: the two Disks to find the distance between
+  @return float: the distance between the disks*/
+  minDistanceBtwnDisks(disk1, disk2) {
+    let nonRotatedDistance = this.distanceBtwnDisks(disk1, disk2);
+    let rotatedDisk2Pos = this.rotatedDisk(disk2);
+    let rotatedDistance = this.distanceBtwnDisks(disk1, rotatedDisk2Pos);
+
+    return min(nonRotatedDistance, rotatedDistance);
+  }
+
+  /*Finds the distance between two disks, NOT accounting for rotation.
   @param disk1, disk2: the two Disks to find the distance between
   @return float: the distance between the disks*/
   distanceBtwnDisks(disk1, disk2) {
-    let nonRotatedDistance = dist(disk1.x, disk1.y, disk2.x, disk2.y);
-    let rotatedDisk2Pos = this.rotatedDisk(disk2);
-    let rotatedDistance = dist(disk1.x, disk1.y, rotatedDisk2Pos.x, rotatedDisk2Pos.y);
-
-    return min(nonRotatedDistance, rotatedDistance);
+    return dist(disk1.x, disk1.y, disk2.x, disk2.y);
   }
 
   /*Returns the disk's equivalent location on the other side of the cone (due to rotation)
@@ -416,57 +407,6 @@ class StackingCone {
     return dist(disk.x, disk.y, this.vertexX, this.vertexY);
   }
 
- 
-  /*test if there is an overlap between disks
-  @param disk1 disk2: two disks
-  @return true if there is an overlap, false if no 
-  overlap*/
-  isOverlap(disk1,disk2){ 
-
-    if (distanceBtwnDisks(disk1, disk2) < 2*disk1.radius) {
-      return true;
-      print ("there is an overlap");
-    }
-    else {
-      return false;
-      print ("no overlap");
-    } 
-    }
-
-  /*Determines whether a disk's center will be drawn off the cone.
-  @param disk: the disk to check
-  @return T/F: whether the disk is off the cone or not*/
-  isOffCone(disk) {
-
-    //first, check if it's below the cone somehow
-    if(disk.y < this.vertexY) {
-      return true;
-    }
-    
-    //create a vector pointing to disk if positioned at cone vertex
-    let vertexToDisk = this.vertexToDisk(disk);
-    
-    let angleBtwnSideAndDisk;
-    angleMode(DEGREES);
-    
-    //if on left side, check if over left
-    if(disk.x < this.vertexX) {
-      let leftConeSide = createVector(-cos(90-this.angle/2), sin(90-this.angle/2));
-      angleBtwnSideAndDisk = vertexToDisk.angleBetween(leftConeSide);
-    }
-    //if on right side, check if over right
-    else {
-      let rightConeSide = createVector(cos(90-this.angle/2), sin(90-this.angle/2));
-      angleBtwnSideAndDisk = rightConeSide.angleBetween(vertexToDisk);
-    }
-
-    //the disk is "off" the cone if angleBtwnSideAndDisk > 0 (just because of how angleBtwnSideAndDisk was calculated)
-    if(angleBtwnSideAndDisk < 0) {
-      return true;
-    }
-    return false;
-  }
-
   /*Creates a vector from the cone's vertex to the given disk.
   @param disk: the disk
   @return p5 Vector: a vector from the vertex to the disk */
@@ -474,4 +414,48 @@ class StackingCone {
     //create a vector pointing to disk if positioned at cone vertex
     return createVector(disk.x - this.vertexX, disk.y - this.vertexY);
   }
+
+  /*Draws the cone*/
+  display() {
+    fill(0);
+    angleMode(DEGREES);
+    push();
+    let radius = 1.8;
+    this.createTransform();
+    
+    strokeWeight(0.008);
+    line(this.vertexX, this.vertexY, this.vertexX+radius*cos(90-this.angle/2), this.vertexY+radius*sin(90-this.angle/2));
+    line(this.vertexX, this.vertexY, this.vertexX-radius*cos(90-this.angle/2), this.vertexY+radius*sin(90-this.angle/2));
+
+    //draw all disks
+    for(let disk of this.extendedDisks) {
+      disk.displayDisk(240);
+    }
+    //draw disks that are actually in the cone (slightly darker)
+    for (let disk of this.disks) {
+      disk.displayDisk(180);
+    }
+
+    //add the text to the disks
+    for(let disk of this.disks) {
+      push();
+      translate(disk.x, disk.y);
+      scale(1,-1);
+      disk.displayDiskText();
+      pop();
+    }
+
+    pop();
+
+  }
+
+  /*Puts the canvas into the mode used to draw everything.*/
+  createTransform() {
+    translate(windowWidth/2, windowHeight/2);
+    //before, we're assuming 1 = 100%
+    scale(windowHeight/2);
+    scale(1,-1);
+  }
+
+
 }
