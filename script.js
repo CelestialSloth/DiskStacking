@@ -12,27 +12,32 @@ var childX;
 var childY;
 
 function setup() {
-  print("started setup");
+  //print("started setup");
   createCanvas(windowWidth, windowHeight);
     background(255);
   angleMode(DEGREES);
-  coneAngle = 70;
+  coneAngle = 100;
   //exampleCone = new StackingCone(windowWidth/2, windowHeight-windowWidth/(4*tan(coneAngle/2)), coneAngle);
-  print("creating exampleCone");
+  //print("creating exampleCone");
   exampleCone = new StackingCone(0, -0.5, coneAngle);
 
-  print("setUpFirstFront");
+  //print("setUpFirstFront");
   exampleCone.setUpFirstFront(0.1);
     
   //test generateExtendedFront
-  print("testing generateExtendedFront");
+  //print("testing generateExtendedFront");
   let extendedFront = [];
-  extendedFront = exampleCone.generateExtendedFront();
+  //extendedFront = exampleCone.generateExtendedFront();
   
+  
+
+  //print("\n\n\n")
+
   //test determineChildCandidates
-  print("testing candidates");
-  childCandidates = exampleCone.determineChildCandidates();
-  print("done testing candidates");
+  //print("testing candidates");
+  //childCandidates = exampleCone.determineChildCandidates();
+  //print("done testing candidates");
+  
   
 }
 
@@ -40,18 +45,23 @@ function draw() {
   background(255);
   
   drawAxes();
-  
-  //draw the cones
-  exampleCone.display();
 
-  push();
+  
+  /*push();
   exampleCone.createTransform();
   strokeWeight(3/windowHeight);
   for (disk of childCandidates) {
     disk[0].displayDisk([255,0,0]);
   }
   
-  pop();
+  pop();*/
+  
+  //draw the cones
+  exampleCone.display();
+
+  drawFront();
+
+  
   
 }
 
@@ -71,4 +81,22 @@ function drawAxes() {
   text('x = 0', windowWidth/2+10,30);
   text('y = 0',30, windowHeight/2-10);
   stroke(0);
+}
+
+function drawFront() {
+  push();
+  exampleCone.createTransform();
+  stroke(200, 0, 0);
+  strokeWeight(5/windowHeight);
+  for(let index = 0; index < exampleCone.front.length - 1; index ++) {
+    let disk1 = exampleCone.disks[exampleCone.front[index]];
+    let disk2 = exampleCone.disks[exampleCone.front[index + 1]];
+
+    line(disk1.x, disk1.y, disk2.x, disk2.y);
+  }
+  pop();
+}
+
+function mouseClicked() {
+  exampleCone.nextDiskStackingIteration();
 }
