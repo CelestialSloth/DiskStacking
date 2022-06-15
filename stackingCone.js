@@ -60,11 +60,6 @@ class StackingCone {
     
     //In front[], insert the child disk in the proper location (probably between the parents but there could be exceptions)
     this.insertChildIntoFront(parent1ID, parent2ID, lowestCandidate[0]);
-
-    print("*****Completed next DiskStackingIteration! Now, the ids in front[] are: " );
-    for(let i = 0; i < this.front.length; i ++) {
-      print(this.front[i].id);
-    }
   }
 
   /*Using the current front, this method determines all the locations where a child disk could be placed. Returns an array of candidates. Should account for rotation
@@ -144,7 +139,7 @@ class StackingCone {
     for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
       let candidateToCheck = (candidates[candidateIndex])[0];
       let hasOverlap = false;
-      for (let diskToCheck of this.front) {
+      for (let diskToCheck of this.disks) {
         if(this.isOverlap(diskToCheck, candidateToCheck)) {
           hasOverlap = true;
         }
@@ -188,7 +183,8 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     //generate extended front, where we rotate disks from the left until they reach more than 4r units away from the rightmost disk
     while(continueWhileLoop) {
       let diskToRotate = this.extendedFront[indexToRotate];
-      aDistance = this.angularDistanceBtwnDisks(rightmostFrontDisk, diskToRotate);
+      let rotatedDisk = this.rotateRight(diskToRotate);
+      aDistance = this.angularDistanceBtwnDisks(rightmostFrontDisk, rotatedDisk);
 
       //if the disks are too far apart, end this while loop
       if(aDistance > 4*radius) {
@@ -196,7 +192,6 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       } 
       //otherwise, rotate the other disk to the right and add it to the extended front
       else {
-        let rotatedDisk = this.rotateRight(diskToRotate);
         this.extendedFront.push(rotatedDisk);
         indexToRotate ++;
       }
@@ -316,7 +311,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
     //check if parent disks are too far apart. If so, return null
     if(distBtwnParents > radius*4){
-      print("--too far, returning null");
+      //print("--too far, returning null");
       return null;
     }
 
@@ -340,7 +335,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
     //run opposedness test (ie, is the child actually "between" the two parents)
     if(!this.isBetweenParents(child, parent1, parent2)) {
-      print("child is not between parents, returning null");
+      //print("child is not between parents, returning null");
       return null;
     }
 
@@ -457,6 +452,8 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     angleMode(RADIANS);
     let angularDist = abs(vertexToDisk1.angleBetween(vertexToDisk2)) * distToVertex;
 
+    angleMode(DEGREES);
+
     return angularDist;
   }
 
@@ -545,11 +542,11 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     
     //draw disks
     for (let disk of this.disks) {
-      disk.displayDisk(180);
-
       let rotatedDisk = this.rotatedDisk(disk);
       rotatedDisks.push(rotatedDisk);
       rotatedDisk.displayDisk([240, 240, 240, 230], 200);
+      
+      disk.displayDisk(180); 
     }
 
     //add the text to the disks
