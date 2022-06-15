@@ -8,9 +8,7 @@ Note:
 * rotateOntoCone makes some assumptions that could be problematic with larger angles
 */
 
-/**
-Note: currently changing the structure of front[] to contain disk objects. Last git commit was version of program before this change.
-*/
+
 class StackingCone {
   /* Constructor for the cone
   @param vertexX, vertexY: the x and y values for the vertex; the vertex angle in degrees
@@ -543,13 +541,15 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     line(this.vertexX, this.vertexY, this.vertexX+radius*cos(90-this.angle/2), this.vertexY+radius*sin(90-this.angle/2));
     line(this.vertexX, this.vertexY, this.vertexX-radius*cos(90-this.angle/2), this.vertexY+radius*sin(90-this.angle/2));
 
-    //draw all disks
-    for(let disk of this.extendedFront) {
-      disk.displayDisk(240);
-    }
-    //draw disks that are actually in the cone (slightly darker)
+    let rotatedDisks = [];
+    
+    //draw disks
     for (let disk of this.disks) {
       disk.displayDisk(180);
+
+      let rotatedDisk = this.rotatedDisk(disk);
+      rotatedDisks.push(rotatedDisk);
+      rotatedDisk.displayDisk([240, 240, 240, 230], 200);
     }
 
     //add the text to the disks
@@ -558,6 +558,14 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       translate(disk.x, disk.y);
       scale(1,-1);
       disk.displayDiskText();
+      pop();
+    }
+
+    for(let disk of rotatedDisks) {
+      push();
+      translate(disk.x, disk.y);
+      scale(1,-1);
+      disk.displayDiskText([200]);
       pop();
     }
 

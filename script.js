@@ -1,6 +1,6 @@
 
 /**Notes
-* 
+* Errors with angles over 100
 **/
 var exampleCone;
 var exampleDisk;
@@ -16,7 +16,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
     background(255);
   angleMode(DEGREES);
-  coneAngle = 90;
+  coneAngle = 95;
   //exampleCone = new StackingCone(windowWidth/2, windowHeight-windowWidth/(4*tan(coneAngle/2)), coneAngle);
   //print("creating exampleCone");
   exampleCone = new StackingCone(0, -0.5, coneAngle);

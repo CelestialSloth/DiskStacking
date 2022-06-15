@@ -13,15 +13,16 @@ class Disk {
   }
 
   /*Draws the Disk*/
-  displayDisk(color = [200, 200, 200]) {
-    fill(color);
+  displayDisk(fillColor = [200, 200, 200], strokeColor = [0]) {
+    fill(fillColor);
+    stroke(strokeColor);
     ellipse(this.x, this.y, this.radius*2, this.radius*2);
     
   }
 
   /*Draws the Disk text. Is a separate method because of how we use transforms in stackingCone*/
-  displayDiskText() {
-    fill(0);
+  displayDiskText(color = [0]) {
+    fill(color);
     textSize(0.08);
     textAlign(CENTER,CENTER);
     noStroke();
