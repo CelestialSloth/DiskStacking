@@ -89,8 +89,8 @@ function drawFront() {
   stroke(200, 0, 0);
   strokeWeight(5/windowHeight);
   for(let index = 0; index < exampleCone.front.length - 1; index ++) {
-    let disk1 = exampleCone.disks[exampleCone.front[index]];
-    let disk2 = exampleCone.disks[exampleCone.front[index + 1]];
+    let disk1 = exampleCone.front[index];
+    let disk2 = exampleCone.front[index + 1];
 
     line(disk1.x, disk1.y, disk2.x, disk2.y);
   }
