@@ -16,7 +16,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
     background(255);
   angleMode(DEGREES);
-  coneAngle = 100;
+  coneAngle = 90;
   //exampleCone = new StackingCone(windowWidth/2, windowHeight-windowWidth/(4*tan(coneAngle/2)), coneAngle);
   //print("creating exampleCone");
   exampleCone = new StackingCone(0, -0.5, coneAngle);
@@ -98,5 +98,7 @@ function drawFront() {
 }
 
 function mouseClicked() {
+  print("clicked the mouse");
   exampleCone.nextDiskStackingIteration();
+  print("finished running nextDiskStackingIteration()");
 }

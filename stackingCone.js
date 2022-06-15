@@ -8,6 +8,9 @@ Note:
 * rotateOntoCone makes some assumptions that could be problematic with larger angles
 */
 
+/**
+Note: currently changing the structure of front[] to contain disk objects. Last git commit was version of program before this change.
+*/
 class StackingCone {
   /* Constructor for the cone
   @param vertexX, vertexY: the x and y values for the vertex; the vertex angle in degrees
@@ -20,10 +23,9 @@ class StackingCone {
     this.diskNumber = 0; //used as a tag to identify unique disks
     
     this.disks = []; //contains actual disk instances
-    this.front = []; //the indices of disks (from disks[]) in the front will be contained in this array, in order, from left to right. Ex: [1, 2, 4, 3, 7, 5, 6...]
+    this.front = []; //the disks in the front
 
     //these will be used in several functions, and will contain extended versions of the front and disks. (ie, versions where disks have been rotated to make the front seem longer)
-    this.extendedDisks = [];
     this.extendedFront = [];
   }
 
@@ -36,8 +38,7 @@ class StackingCone {
     let firstdisk = new Disk(0,-(abs(this.vertexY)-radius/sin(this.angle/2)),radius);
     this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
-    let firstfront = 0;
-    this.front.push(firstfront);
+    this.front.push(firstdisk);
   }
 
   /*TODO:Using the current front, this method finds and adds the next child disk in the proper (lowest) location, and updates the front[].*/
@@ -45,7 +46,7 @@ class StackingCone {
     //determine child disk candidates
     let candidates = this.determineChildCandidates();
 
-    //find lowest candidate. lowestCandidate = [disk, parent1 index in front, parent2 index in front]
+    //find lowest candidate. lowestCandidate = [disk, parent1 ID, parent2 ID]
     let lowestCandidate = this.findLowestCandidate(candidates);
 
     //give it an id
@@ -53,7 +54,6 @@ class StackingCone {
     
     //add lowest candidate to disks[]
     this.disks.push(lowestCandidate[0]);
-    let childIndexInDisks = this.disks.length - 1;
 
     //In front[], delete disks between parents of the lowest disk.
     let parent1ID = lowestCandidate[1];
@@ -61,7 +61,7 @@ class StackingCone {
     this.deleteDisksBetweenParents(parent1ID, parent2ID);
     
     //In front[], insert the child disk in the proper location (probably between the parents but there could be exceptions)
-    //this.insertChildInFront(parent1ID, parent2ID, childIndexInDisks);
+    //this.insertChildInFront(parent1ID, parent2ID, lowestCandidate[0]);
   }
 
   /*Using the current front, this method determines all the locations where a child disk could be placed. Returns an array of candidates. Should account for rotation
@@ -98,18 +98,17 @@ class StackingCone {
     //print("front: " + this.front);
     //print("extended front: " + this.extendedFront);
     for(let frontIndex = 0; frontIndex < this.extendedFront.length; frontIndex ++) {
-      //print(this.extendedDisks[this.extendedFront[frontIndex]].id);
     }
     //for each disk in original front
     for(let frontIndex = 0; frontIndex < this.front.length; frontIndex ++) {
-      let frontDisk = this.disks[this.front[frontIndex]]; //the disk we're starting from
+      let frontDisk = this.front[frontIndex]; //the disk we're starting from
       
       let extendedFrontIndex = frontIndex + 1;
 
       //check forward until the center of the next disk is more than 4r x units away. Use extended front.
       let continueWhileLoop = true;
       while(continueWhileLoop) {
-        let diskToCheck = this.extendedDisks[this.extendedFront[extendedFrontIndex]]; //the disk we're checking 
+        let diskToCheck = this.extendedFront[extendedFrontIndex]; //the disk we're checking 
         
         if(diskToCheck == null) {
           //print("  diskToCheck == null. continue");
@@ -147,8 +146,8 @@ class StackingCone {
     for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
       let candidateToCheck = (candidates[candidateIndex])[0];
       let hasOverlap = false;
-      for (let diskIndex of this.front) {
-        let diskToCheck = this.disks[diskIndex];
+      for (let diskToCheck of this.front) {
+        
         if(this.isOverlap(diskToCheck, candidateToCheck)) {
           hasOverlap = true;
         }
@@ -181,38 +180,34 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     
   /*For use with determineChildCandidates(). Creates an "extended" front where some disks from the left are copied and rotated rightward. It updates this.extendedFront() and this.extendedDisks()*/
   generateExtendedFront() {
-    let rightmostFrontDisk = this.disks[this.front.slice(-1)]; //last disk in front
+    let rightmostFrontDisk = this.front[this.front.length-1]; //last disk in front
     let radius = rightmostFrontDisk.radius; //the radius for all the disks we're working with
     
     this.extendedFront = [...this.front];
-    this.extendedDisks = [...this.disks];
 
     let aDistance; //represents the true distance between rightmostFrontDisk and another disk in the front.
     let indexToRotate = 0; //the index of the next disk in the front to possibly rotate
     let continueWhileLoop = true;
 
     //generate extended front, where we rotate disks from the left until they reach more than 4r units away from the rightmost disk
+    let deleteThis = 0;
     while(continueWhileLoop) {
-      let diskToRotate = this.extendedDisks[this.extendedFront[indexToRotate]];
+      print(deleteThis);
+      let diskToRotate = this.extendedFront[indexToRotate];
       aDistance = this.angularDistanceBtwnDisks(rightmostFrontDisk, diskToRotate);
 
       //if the disks are too far apart, end this while loop
-      if(aDistance > 4*radius) {
+      if(aDistance > 4*radius || deleteThis > 20) {
         continueWhileLoop = false;
       } 
       //otherwise, rotate the other disk to the right and add it to the extended front
       else {
         let rotatedDisk = this.rotateRight(diskToRotate);
-        this.extendedDisks.push(rotatedDisk);
-        this.extendedFront.push(this.extendedDisks.length-1);
+        this.extendedFront.push(rotatedDisk);
         indexToRotate ++;
       }
+      deleteThis ++;
     }
-    
-    //add one extra disk. (Used in determineChildCandidates)
-    /*let rotatedDisk = this.rotateRight(this.extendedDisks[indexToRotate]);
-    this.extendedDisks.push(rotatedDisk);
-    this.extendedFront.push(this.extendedDisks.length-1);*/
   }
 
   /*Given a list of child candidates, this method determines the lowest candidate and returns its index.
@@ -244,7 +239,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let searchingForParent2 = true;
     let frontIndex = this.front.length - 1;
     while(searchingForParent2) {
-      if(this.disks[this.front[frontIndex]].id == parent2ID) {
+      if(this.front[frontIndex].id == parent2ID) {
         searchingForParent2 = false;
       } else {
         frontIndex --;
@@ -265,14 +260,12 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     
     let searchingForParent1 = true;
     while(searchingForParent1) {
-      if(this.disks[this.front[frontIndex]].id == parent1ID) {
+      if(this.front[frontIndex].id == parent1ID) {
         searchingForParent1 = false;
-        //print("  found parent1 at index " + frontIndex + ". front: " + this.front);
       } 
-      /*else if(this.disks[this.front[frontIndex]].id == parent2ID) {}*/
       else {
         //don't delete parent2
-        if(this.disks[this.front[frontIndex]].id != parent2ID) {
+        if(this.front[frontIndex].id != parent2ID) {
           this.front.splice(frontIndex,1);
         }
         frontIndex --;
@@ -422,7 +415,10 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     //angular distance
     let vertexToDisk1 = this.vertexToDisk(disk1);
     let vertexToDisk2 = this.vertexToDisk(disk2);
+    print("Inside angularDistanceBtwnDisks, about to call distanceToVertex");
+    print("disk 1: " + disk1.id);
     let distToVertex = this.distanceToVertex(disk1); //Assumes we're using the first disk as the comparison
+    print("called it");
 
     angleMode(RADIANS);
     let angularDist = abs(vertexToDisk1.angleBetween(vertexToDisk2)) * distToVertex;
@@ -512,7 +508,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     line(this.vertexX, this.vertexY, this.vertexX-radius*cos(90-this.angle/2), this.vertexY+radius*sin(90-this.angle/2));
 
     //draw all disks
-    for(let disk of this.extendedDisks) {
+    for(let disk of this.extendedFront) {
       disk.displayDisk(240);
     }
     //draw disks that are actually in the cone (slightly darker)
