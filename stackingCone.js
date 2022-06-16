@@ -8,6 +8,7 @@ Note:
 * rotateOntoCone makes some assumptions that could be problematic with larger angles
 */
 
+/*Note: work on findParents() method!!!*/
 
 class StackingCone {
   /* Constructor for the cone
@@ -63,6 +64,9 @@ class StackingCone {
     
     //add lowest candidate to disks[]
     this.disks.push(child);
+
+    //see if there are any other disks "touching" the child that should actually be the parents
+    //let parents = findParents(child);
 
     //In front[], delete disks between parents of the lowest disk.
     let parent1ID = lowestCandidate[1];
@@ -198,44 +202,40 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     return lowestDisk;
   }
 
+  /*Given the child disk, determine which disks in the front *should* be the parent disks.
+  @param child: the child Disk
+  @return [parent1ID, parent2ID]: the ids of the parents*/
+  findParents(child) {
+    //make list of disks touching child on left
+    //make list of disks touching child on right
+    //grab the leftmost disk from the left list, and rightmost disk from the right list
+
+    //option 2---------------
+    //make list of all disks touching child using minDistanceBtwnDisks
+    //determine which is the "leftmost"
+    //determine which is the "rightmost"
+
+    //edge case where there's only one parent
+  }
+  
   /*Given the IDs of the parents, this method deletes the disks in the front between the two parents.
   @param parent1ID, parent2ID: the indices of the parents' ids. Parents must be entered in order (parent1 = left, parent2 = right) */
   deleteDisksBetweenParents(parent1ID, parent2ID) {
-    //search backward through front to find parent2ID. Once found, keep going backward while deleting until parent1ID is found.
-    let searchingForParent2 = true;
-    let frontIndex = this.front.length - 1;
-    while(searchingForParent2) {
-      if(this.front[frontIndex].id == parent2ID) {
-        searchingForParent2 = false;
-      } else {
-        frontIndex --;
-      }
+    let parent1Index = this.findIndexWithID(this.front, parent1ID);
+    let parent2Index = this.findIndexWithID(this.front, parent2ID);
 
-      //problems
-      if(frontIndex < 0) {
-        return;
-      }
-    }
-
-    //edge case: parent1 = parent2:
+    //edge case: parent1ID = parent2ID. Delete everything other than the parent
     if(parent1ID == parent2ID) {
-      this.front.splice(frontIndex+1, 0);
-      return;
+      this.front = [this.front[parent1Index]];
     }
-    
-    let searchingForParent1 = true;
-    while(searchingForParent1) {
-      if(this.front[frontIndex].id == parent1ID) {
-        searchingForParent1 = false;
-      } 
-      else {
-        //don't delete parent2
-        if(this.front[frontIndex].id != parent2ID) {
-          this.front.splice(frontIndex,1);
-        }
-        frontIndex --;
-        if(frontIndex < 0) { frontIndex = this.front.length-1; }
-      }
+
+    //normal case: parent1Index < parent2Index. Remove elements between those two indices.
+    else if(parent1Index < parent2Index) {
+      this.front.splice(parent1Index + 1, parent2Index - parent1Index - 1);
+    }
+    //parent1Index is at the end of the array, and parent2Index is at the beginning. Remove elements after parent1 and before parent2. In other words, only keep the values between the parents, including the parents.
+    else {
+      this.front = this.front.splice(parent2Index, parent1Index - parent2Index + 1);
     }
   }
 
@@ -285,7 +285,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     }
   }
 
-  /*Ensures that there is a rotated version of the first and last disk in the current drawn on the screen.*/
+  /*Ensures that there is a rotated version of the first and last disk in the current front drawn on the screen.*/
   updateExtraDisks() {
     //check if the first disk in the front is in extraDisks. If not, add it.
     let indexOfFirstFrontDisk = this.findIndexWithID(this.extraDisks, this.front[0].id);
@@ -302,8 +302,8 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   }
 
   /**************************************************/
-  /*            FUNCTIONS LEVEL 2                  */
-  /*************************************************/
+  /*            FUNCTIONS LEVEL 2                   */
+  /**************************************************/
   
   /*Creates an "extended" front where some disks from the left are copied and rotated rightward. It updates this.extendedFront().*/
   generateExtendedFront() {
@@ -591,11 +591,11 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     
     //draw disks
     for (let disk of this.disks) {
-      disk.displayDisk(180); 
+      disk.displayDisk(180, [0,0,0,0]); 
     }
 
     for(let disk of this.extraDisks) {
-      disk.displayDisk([240, 240, 240, 230], 200);
+      disk.displayDisk([240, 240, 240, 230], [200,200,200,230]);
     }
 
     //add the text to the disks
