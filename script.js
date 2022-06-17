@@ -10,7 +10,7 @@ function setup() {
   background(255);
   
   //exampleCone = new StackingCone(windowWidth/2, windowHeight-windowWidth/(4*tan(coneAngle/2)), coneAngle);
-  exampleCone = new StackingCone(0, 0, 90, 0.05);
+  exampleCone = new StackingCone(0, -.8, 90, 0.05);
   /*let iterations = 0;
   for(let i = 0; i < iterations; i ++) {
     exampleCone.nextDiskStackingIteration();

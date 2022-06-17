@@ -38,7 +38,7 @@ class StackingCone {
    add them to the disk array and front array*/
   setUpFirstFront() {
     angleMode(DEGREES);
-    let firstdisk = new Disk(0,-(abs(this.vertexY)-this.diskRadius/sin(this.angle/2)),this.diskRadius);
+    let firstdisk = new Disk(0,-(-this.diskRadius/sin(this.angle/2)),this.diskRadius);
     this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
     this.front.push(firstdisk);
@@ -471,7 +471,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   isOffCone(disk) {
     let tolerance = 10**(-3);
     //first, check if it's below the cone somehow
-    if(disk.y < this.vertexY) {
+    if(disk.y < 0) {
       return true;
     }
     
@@ -482,7 +482,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     angleMode(DEGREES);
     
     //if on left side, check if over left
-    if(disk.x < this.vertexX) {
+    if(disk.x < 0) {
       let leftConeSide = createVector(-cos(90-this.angle/2), sin(90-this.angle/2));
       angleBtwnSideAndDisk = vertexToDisk.angleBetween(leftConeSide);
     }
@@ -540,7 +540,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param disk: the Disk (or vector coordinates, both of which should have x and y attributes)
   @return the distance of the disk to the cone's vertex*/
   distanceToVertex(disk) {
-    return dist(disk.x, disk.y, this.vertexX, this.vertexY);
+    return dist(disk.x, disk.y, 0, 0);
   }
 
   /*Creates a vector from the cone's vertex to the given disk.
@@ -548,7 +548,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @return p5 Vector: a vector from the vertex to the disk */
   vertexToDisk(disk) {
     //create a vector pointing to disk if positioned at cone vertex
-    return createVector(disk.x - this.vertexX, disk.y - this.vertexY);
+    return createVector(disk.x, disk.y);
   }
 
   /*Tests whether the diskToCheck touches the disk on the left side.
@@ -611,7 +611,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     angleMode(DEGREES);
     //if on the right side of cone, rotate to left
     //TODO: fix this so it deals with angular stuff. Actually maybe this is always right?
-    if(disk.x > this.vertexX) {
+    if(disk.x > 0) {
       return this.rotateLeft(disk);
     }
     //if on left side of cone, rotate all the way around, ending up on the right
@@ -627,7 +627,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let vertexToDisk = this.vertexToDisk(disk);
     angleMode(DEGREES);
     vertexToDisk.rotate(360-this.angle);
-    return new Disk(this.vertexX + vertexToDisk.x, this.vertexY + vertexToDisk.y, this.diskRadius, disk.id);
+    return new Disk(vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
 
   /*Generates a disk rotated to the left
@@ -637,7 +637,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let vertexToDisk = this.vertexToDisk(disk);
     angleMode(DEGREES);
     vertexToDisk.rotate(this.angle);
-    return new Disk(this.vertexX + vertexToDisk.x, this.vertexY + vertexToDisk.y, this.diskRadius, disk.id);
+    return new Disk(vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
 
   /************** ID FUNCTIONS *********************/
@@ -679,8 +679,8 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     this.createTransform();
     
     strokeWeight(5/windowHeight);
-    line(this.vertexX, this.vertexY, this.vertexX+length*cos(90-this.angle/2), this.vertexY+length*sin(90-this.angle/2));
-    line(this.vertexX, this.vertexY, this.vertexX-length*cos(90-this.angle/2), this.vertexY+length*sin(90-this.angle/2));
+    line(0, 0, length*cos(90-this.angle/2), length*sin(90-this.angle/2));
+    line(0, 0, -length*cos(90-this.angle/2), length*sin(90-this.angle/2));
 
     let rotatedDisks = [];
     
@@ -752,14 +752,14 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     for(let angle = 0; angle < 360; angle += 15) {
       let dx = axesLength*cos(angle);
       let dy = axesLength*sin(angle);
-      line(this.vertexX, this.vertexY, this.vertexX+dx, this.vertexY+dy);
+      line(0, 0, dx, dy);
     }
 
     //draw circles
     let circleInterval = axesLength/10;
     noFill();
     for(let r = 0; r < 4*windowWidth/windowHeight; r += circleInterval) {
-      ellipse(this.vertexX, this.vertexY, r, r);
+      ellipse(0, 0, r, r);
     }
 
     pop();
@@ -789,5 +789,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     //before, we're assuming 1 = 100%
     scale(windowHeight/2);
     scale(1,-1);
+
+    translate(this.vertexX, this.vertexY);
   }
 }
