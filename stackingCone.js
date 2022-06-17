@@ -3,8 +3,7 @@
 /**
 Test angularDistanceBetweenDisks for angular distances. Note that this could overestimate distances (ie, a curved 4*r is a little less than 4*r)
 
-Note: 
-* could have issues finding children when parents are at say -pi/pi based on how the program is running the opposedness test. (The child wouldn't register as being "between" parents.)
+Note:
 * rotateOntoCone makes some assumptions that could be problematic with larger angles
 */
 
@@ -66,9 +65,9 @@ class StackingCone {
     this.disks.push(lowestCandidate);
 
     //Determine the child's "actual" parents. (The disks touching the child that are farthest apart.)
-    let parents = this.findParents(lowestCandidate);
-    let parent1ID = parents[0].id;
-    let parent2ID = parents[1].id;
+    lowestCandidate.parents = this.findParents(lowestCandidate);
+    let parent1ID = lowestCandidate.parents[0].id;
+    let parent2ID = lowestCandidate.parents[1].id;
     //print("\nDisk " + lowestCandidate.id);
     //print("  left parent: " + parent1ID);
     //print("  right parent: " + parent2ID);
@@ -154,6 +153,7 @@ class StackingCone {
     for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
       let candidateToCheck = candidates[candidateIndex];
       let hasOverlap = false;
+
       for (let diskToCheck of this.disks) {
         if(this.isOverlap(diskToCheck, candidateToCheck)) {
           hasOverlap = true;
@@ -204,24 +204,33 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
   /*Given the child disk, determine which disks in the front *should* be the parent disks.
   @param child: the child Disk
-  @return [parent1ID, parent2ID]: the ids of the parents*/
+  @return [parent1, parent2]: the parent Disks*/
   findParents(child) {
     let disksTouchingLeft = [];
     let disksTouchingRight = [];
+    
     //make list of disks touching child on left and on right
     for (let disk of this.front) {
+      
       let diskThatTouchesLeft = this.touchesLeft(child, disk);
-      if(diskThatTouchesLeft != null) { disksTouchingLeft.push(diskThatTouchesLeft);}
-
+      if(diskThatTouchesLeft != null) {
+        disksTouchingLeft.push(diskThatTouchesLeft);
+      }
+      
       let diskThatTouchesRight = this.touchesRight(child, disk);
-      if(diskThatTouchesRight != null) { disksTouchingRight.push(diskThatTouchesRight);}
+      if(diskThatTouchesRight != null) { 
+        disksTouchingRight.push(diskThatTouchesRight);
+      }
     }
 
     //grab the leftmost disk from the left list, and rightmost disk from the right list
     let maxAngularDistLeft = 0;
     let farthestLeftDisk = disksTouchingLeft[0];
+    
     for(let disk of disksTouchingLeft) {
+      
       if(this.angularDistanceBtwnDisks(child, disk) > maxAngularDistLeft) {
+        
         maxAngularDistLeft = this.angularDistanceBtwnDisks(child, disk);
         farthestLeftDisk = disk;
       }
@@ -229,8 +238,11 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
     let maxAngularDistRight = 0;
     let farthestRightDisk = disksTouchingRight[0];
+    
     for(let disk of disksTouchingRight) {
+      
       if(this.angularDistanceBtwnDisks(child, disk) > maxAngularDistRight) {
+        
         maxAngularDistRight = this.angularDistanceBtwnDisks(child, disk);
         farthestRightDisk = disk;
       }
@@ -750,6 +762,24 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       ellipse(this.vertexX, this.vertexY, r, r);
     }
 
+    pop();
+  }
+
+  /*Draws the ontological graph (connects child disks to parents)*/
+  drawOntologicalGraph() {
+    push();
+    this.createTransform();
+    stroke(0,0,200);
+    strokeWeight(3/windowHeight);
+    
+    for (let disk of this.disks) {
+      if(disk.parents.length >= 1) {
+        line(disk.parents[0].x, disk.parents[0].y, disk.x, disk.y);
+      }
+      if(disk.parents.length >= 2) {
+        line(disk.parents[1].x, disk.parents[1].y, disk.x, disk.y); 
+      }
+    }
     pop();
   }
 

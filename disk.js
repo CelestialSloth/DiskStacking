@@ -9,7 +9,8 @@ class Disk {
     this.x = x;
     this.y = y;
     this.radius = radius;
-    this.id = id;
+    this.id = id; //keeps track of which disk this is. Kept the same across rotated disks.
+    this.parents = []; //array of two Disks that are the parents. Should be the Disks rotated to the right physical location. Used to generate the ontological graph.
   }
 
   /*Draws the Disk.
