@@ -5,12 +5,17 @@
 let exampleCone;
 
 function setup() {
+  print("hi");
   createCanvas(windowWidth, windowHeight);
   
   background(255);
   
   //exampleCone = new StackingCone(windowWidth/2, windowHeight-windowWidth/(4*tan(coneAngle/2)), coneAngle);
-  exampleCone = new StackingCone(0, -0.8, 57, 0.05);
+  exampleCone = new StackingCone(0, 0, 200, 0.05);
+  /*let iterations = 0;
+  for(let i = 0; i < iterations; i ++) {
+    exampleCone.nextDiskStackingIteration();
+  }*/
 
  
 }

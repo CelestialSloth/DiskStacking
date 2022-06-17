@@ -104,14 +104,11 @@ class StackingCone {
   /*Creates a list of candidates, but does not check for overlap
   @return a list of child candidates, ignoring whether they are overlapping with other disks*/
   candidatesIgnoreOverlap() {
-    //print("\n\n\nInside candidatesIgnoreOverlap()");
     let candidates = []; //an empty array to be filled with possible child candidates
     
     //generate extended front, where we rotate disks from the left until they reach more than 4r x units away from the rightmost disk
     this.generateExtendedFront();
     
-    for(let frontIndex = 0; frontIndex < this.extendedFront.length; frontIndex ++) {
-    }
     //for each disk in original front
     for(let frontIndex = 0; frontIndex < this.front.length; frontIndex ++) {
       let frontDisk = this.front[frontIndex]; //the disk we're starting from
@@ -131,8 +128,8 @@ class StackingCone {
 
         //print("Checking for children from disks " + frontDisk.id + " and " + diskToCheck.id);
 
-        //if the disks are too far apart, we're done looking
-        if(this.angularDistanceBtwnDisks(frontDisk, diskToCheck) > 4*this.diskRadius) {
+        //if the disks are too far apart, OR if there are no more disks to check, we're done looking
+        if(this.angularDistanceBtwnDisks(frontDisk, diskToCheck) > 4*this.diskRadius || extendedFrontIndex >= this.extendedFront.length) {
           //print("  angularDistance is too much. continue");
           continueWhileLoop = false;
           continue;
@@ -333,6 +330,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   /*Creates an "extended" front where some disks from the left are copied and rotated rightward. It updates this.extendedFront().*/
   generateExtendedFront() {
     let rightmostFrontDisk = this.front[this.front.length-1]; //last disk in front
+    //print("rightmostFrontDisk: " + rightmostFrontDisk.id);
     
     this.extendedFront = [...this.front]; //shallow copy front[]
 
@@ -344,12 +342,18 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     while(continueWhileLoop) {
       let diskToRotate = this.extendedFront[indexToRotate];
       let rotatedDisk = this.rotateRight(diskToRotate);
+      //print(rotatedDisk);
       aDistance = this.angularDistanceBtwnDisks(rightmostFrontDisk, rotatedDisk);
-
+      //print("  " + this.aDistance);
       //if the disks are too far apart, end this while loop
       if(aDistance > 4*this.diskRadius) {
         continueWhileLoop = false;
-      } 
+      }
+      //also end the loop if we've rotated everything in this.front
+      else if(this.extendedFront.length >= this.front.length*2) {
+        continueWhileLoop = false;
+      }
+        
       //otherwise, rotate the other disk to the right and add it to the extended front
       else {
         this.extendedFront.push(rotatedDisk);
@@ -418,7 +422,11 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let parent2Angle = parent2Vector.angleBetween(unitXVector);
 
     //check if the child angle is between the two parent angles
-    if(childAngle > min(parent1Angle, parent2Angle && childAngle < max(parent1Angle, parent2Angle))) {
+    if(childAngle > min(parent1Angle, parent2Angle) && childAngle < max(parent1Angle, parent2Angle)) {
+      return true;
+    }
+    //edge case where, say, parent1Angle = -3pi/4, parent2Angle = 3pi/4, childAngle = pi.
+    else if( (min(parent1Angle,parent2Angle) < 0 && max(parent1Angle,parent2Angle) > 0) && (childAngle > max(parent1Angle, parent2Angle) || childAngle < min(parent1Angle, parent2Angle))) {
       return true;
     }
     else{
@@ -487,14 +495,14 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param disk2: the other disk to compare
   @return the "angular" distance between the given disks*/
   angularDistanceBtwnDisks(disk1, disk2) {
-    
     //angular distance
     let vertexToDisk1 = this.vertexToDisk(disk1);
     let vertexToDisk2 = this.vertexToDisk(disk2);
     let distToVertex = this.distanceToVertex(disk1); //Assumes we're using the first disk as the comparison
-
+    
     angleMode(RADIANS);
     let angularDist = abs(vertexToDisk1.angleBetween(vertexToDisk2)) * distToVertex;
+    
     return angularDist;
   }
 
