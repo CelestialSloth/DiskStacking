@@ -52,29 +52,32 @@ class StackingCone {
   
   /*Using the current front, this method finds and adds the next child disk in the proper (lowest) location, and updates the front[].*/
   nextDiskStackingIteration() {
+    
     //determine child disk candidates
     let candidates = this.determineChildCandidates();
 
     //find lowest candidate. lowestCandidate = [disk, parent1 ID, parent2 ID]
     let lowestCandidate = this.findLowestCandidate(candidates);
-    let child = lowestCandidate[0];
 
     //give it an id
-    this.assignNextDiskID(child);
+    this.assignNextDiskID(lowestCandidate);
     
     //add lowest candidate to disks[]
-    this.disks.push(child);
+    this.disks.push(lowestCandidate);
 
-    //see if there are any other disks "touching" the child that should actually be the parents
-    //let parents = findParents(child);
-
+    //Determine the child's "actual" parents. (The disks touching the child that are farthest apart.)
+    let parents = this.findParents(lowestCandidate);
+    let parent1ID = parents[0].id;
+    let parent2ID = parents[1].id;
+    //print("\nDisk " + lowestCandidate.id);
+    //print("  left parent: " + parent1ID);
+    //print("  right parent: " + parent2ID);
+    
     //In front[], delete disks between parents of the lowest disk.
-    let parent1ID = lowestCandidate[1];
-    let parent2ID = lowestCandidate[2];
     this.deleteDisksBetweenParents(parent1ID, parent2ID);
     
     //In front[], insert the child disk in the proper location (probably between the parents but there could be exceptions)
-    this.insertChildIntoFront(parent1ID, parent2ID, child);
+    this.insertChildIntoFront(parent1ID, parent2ID, lowestCandidate);
 
     //add extra disks for the visual
     this.updateExtraDisks();
@@ -99,7 +102,7 @@ class StackingCone {
   }
 
   /*Creates a list of candidates, but does not check for overlap
-  @return a list of child candidates, ignoring whether they are overlapping with other disks: [ [child, parent1 id, parent2 id]*/
+  @return a list of child candidates, ignoring whether they are overlapping with other disks*/
   candidatesIgnoreOverlap() {
     //print("\n\n\nInside candidatesIgnoreOverlap()");
     let candidates = []; //an empty array to be filled with possible child candidates
@@ -138,7 +141,7 @@ class StackingCone {
         //if a child could be produced, add it as a candidate
         let potentialChild = this.childDisk(frontDisk, diskToCheck);
         if(potentialChild != null) {
-          candidates.push([potentialChild, frontDisk.id, diskToCheck.id]);
+          candidates.push(potentialChild);
           //continueWhileLoop = false;
         } 
         extendedFrontIndex ++;
@@ -149,10 +152,10 @@ class StackingCone {
   }
  
   /*Given a list of candidates, this method deletes candidates that overlap with other disks. No return value; the original array that was passed in is altered.
-  @param candidates: the array of candidates [[candidate, parent1ID, parent2ID], ...]*/
+  @param candidates: the array of candidates*/
   deleteOverlappingCandidates(candidates) {
     for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
-      let candidateToCheck = (candidates[candidateIndex])[0];
+      let candidateToCheck = candidates[candidateIndex];
       let hasOverlap = false;
       for (let diskToCheck of this.disks) {
         if(this.isOverlap(diskToCheck, candidateToCheck)) {
@@ -173,11 +176,11 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let rotatedDisks = [];
 
     for (let disk of candidates) {
-      let rotatedDisk = disk[0];
+      let rotatedDisk = disk;
       while(this.isOffCone(rotatedDisk)) {
         rotatedDisk = this.rotatedDisk(rotatedDisk);
       }
-      rotatedDisks.push([rotatedDisk, disk[1], disk[2]]);
+      rotatedDisks.push(rotatedDisk);
     }
 
     return rotatedDisks;
@@ -189,10 +192,10 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @return the index of the lowest child disk.*/
   findLowestCandidate(candidates) {
     let lowestDisk = candidates[0];
-    let smallestDist = this.distanceToVertex(lowestDisk[0]);
+    let smallestDist = this.distanceToVertex(lowestDisk);
 
     for (let disk of candidates) {
-      let newDist = this.distanceToVertex(disk[0]);
+      let newDist = this.distanceToVertex(disk);
       if(newDist < smallestDist){
         smallestDist = newDist;
         lowestDisk = disk;
@@ -206,18 +209,39 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param child: the child Disk
   @return [parent1ID, parent2ID]: the ids of the parents*/
   findParents(child) {
-    //make list of disks touching child on left
-    //make list of disks touching child on right
+    let disksTouchingLeft = [];
+    let disksTouchingRight = [];
+    //make list of disks touching child on left and on right
+    for (let disk of this.front) {
+      let diskThatTouchesLeft = this.touchesLeft(child, disk);
+      if(diskThatTouchesLeft != null) { disksTouchingLeft.push(diskThatTouchesLeft);}
+
+      let diskThatTouchesRight = this.touchesRight(child, disk);
+      if(diskThatTouchesRight != null) { disksTouchingRight.push(diskThatTouchesRight);}
+    }
+
     //grab the leftmost disk from the left list, and rightmost disk from the right list
+    let maxAngularDistLeft = 0;
+    let farthestLeftDisk = disksTouchingLeft[0];
+    for(let disk of disksTouchingLeft) {
+      if(this.angularDistanceBtwnDisks(child, disk) > maxAngularDistLeft) {
+        maxAngularDistLeft = this.angularDistanceBtwnDisks(child, disk);
+        farthestLeftDisk = disk;
+      }
+    }
 
-    //option 2---------------
-    //make list of all disks touching child using minDistanceBtwnDisks
-    //determine which is the "leftmost"
-    //determine which is the "rightmost"
+    let maxAngularDistRight = 0;
+    let farthestRightDisk = disksTouchingRight[0];
+    for(let disk of disksTouchingRight) {
+      if(this.angularDistanceBtwnDisks(child, disk) > maxAngularDistRight) {
+        maxAngularDistRight = this.angularDistanceBtwnDisks(child, disk);
+        farthestRightDisk = disk;
+      }
+    }
 
-    //edge case where there's only one parent
+    return [farthestLeftDisk, farthestRightDisk];
   }
-  
+
   /*Given the IDs of the parents, this method deletes the disks in the front between the two parents.
   @param parent1ID, parent2ID: the indices of the parents' ids. Parents must be entered in order (parent1 = left, parent2 = right) */
   deleteDisksBetweenParents(parent1ID, parent2ID) {
@@ -285,18 +309,19 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     }
   }
 
-  /*Ensures that there is a rotated version of the first and last disk in the current front drawn on the screen.*/
+  /*Ensures that there is a rotated version of the first, second, and second last, and last disk in the current front are drawn on the screen.*/
   updateExtraDisks() {
-    //check if the first disk in the front is in extraDisks. If not, add it.
-    let indexOfFirstFrontDisk = this.findIndexWithID(this.extraDisks, this.front[0].id);
-    if(indexOfFirstFrontDisk == null) {
-      this.extraDisks.push(this.rotatedDisk(this.front[0]));
-    }
+    let diskIndicesToCheck = [0, 1, this.front.length-2, this.front.length-1];
 
-    //check if the last disk in the front is in extraDisks. If not, add it.
-    let indexOfLastFrontDisk = this.findIndexWithID(this.extraDisks, this.front[this.front.length-1].id);
-    if(indexOfLastFrontDisk == null) {
-      this.extraDisks.push(this.rotatedDisk(this.front[this.front.length-1]));
+    for(let index of diskIndicesToCheck) {
+      //make sure that front[] has that index
+      if(index > this.front.length-1) {continue;}
+
+      //check if the disk at that index is in extraDisks. If not, add it.
+      let indexInExtraDisks = this.findIndexWithID(this.extraDisks, this.front[index]);
+      if(indexInExtraDisks == null) {
+        this.extraDisks.push(this.rotatedDisk(this.front[index]));
+      }
     }
 
   }
@@ -424,7 +449,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param disk: the disk to check
   @return T/F: whether the disk is off the cone or not*/
   isOffCone(disk) {
-
+    let tolerance = 10**(-3);
     //first, check if it's below the cone somehow
     if(disk.y < this.vertexY) {
       return true;
@@ -448,7 +473,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     }
 
     //the disk is "off" the cone if angleBtwnSideAndDisk > 0 (just because of how angleBtwnSideAndDisk was calculated)
-    if(angleBtwnSideAndDisk < 0) {
+    if(angleBtwnSideAndDisk < 0 - tolerance) {
       return true;
     }
     return false;
@@ -462,6 +487,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param disk2: the other disk to compare
   @return the "angular" distance between the given disks*/
   angularDistanceBtwnDisks(disk1, disk2) {
+    
     //angular distance
     let vertexToDisk1 = this.vertexToDisk(disk1);
     let vertexToDisk2 = this.vertexToDisk(disk2);
@@ -469,9 +495,6 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
     angleMode(RADIANS);
     let angularDist = abs(vertexToDisk1.angleBetween(vertexToDisk2)) * distToVertex;
-
-    angleMode(DEGREES);
-
     return angularDist;
   }
 
@@ -508,6 +531,58 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     return createVector(disk.x - this.vertexX, disk.y - this.vertexY);
   }
 
+  /*Tests whether the diskToCheck touches the disk on the left side.
+  @param disk: the disk
+  @param diskToCheck: we want to check if this disk touches "disk" on "disk's" left side.
+  @return: the rotated version of the disk that touches the left side, or null if it doesn't touch the left side*/
+  touchesLeft(disk, diskToCheck) {
+    let tolerance = 10**(-3);
+    //check nonrotated disk
+    if(this.isLeftOf(disk, diskToCheck) && this.distanceBtwnDisks(disk, diskToCheck) < 2*this.diskRadius + tolerance) {
+      return diskToCheck;
+    }
+    
+    //check rotated disk
+    let rotatedDiskToCheck = this.rotateLeft(diskToCheck);
+    if(this.isLeftOf(disk, rotatedDiskToCheck) && this.distanceBtwnDisks(disk, rotatedDiskToCheck) < 2*this.diskRadius + tolerance) {
+      return rotatedDiskToCheck;
+    }
+    return null;
+  }
+
+  /*Tests whether the diskToCheck touches the disk on the right side.
+  @param disk: the disk
+  @param diskToCheck: we want to check if this disk touches "disk" on "disk's" right side.
+  @return: the rotated version of the disk that touches the right side, or null if it doesn't touch the right side*/
+  touchesRight(disk, diskToCheck) {
+    let tolerance = 10**(-3);
+    //check nonrotated disk
+    if(!this.isLeftOf(disk, diskToCheck) && this.distanceBtwnDisks(disk, diskToCheck) < 2*this.diskRadius + tolerance) {
+      return diskToCheck;
+    }
+    
+    //check rotated disk
+    let rotatedDiskToCheck = this.rotateRight(diskToCheck);
+    if(!this.isLeftOf(disk, rotatedDiskToCheck) && this.distanceBtwnDisks(disk, rotatedDiskToCheck) < 2*this.diskRadius + tolerance) {
+      return rotatedDiskToCheck;
+    }
+
+    return null;
+  }
+
+  /*Check if diskToCheck is left of disk. Does not account for rotation. 
+  @param disk: the disk
+  @param diskToCheck: the disk to check for rotation
+  @return T/F: whether the disk is left of the diskToCheck*/
+  isLeftOf(disk, diskToCheck) {
+    let vertexToDisk = this.vertexToDisk(disk);
+    let vertexToDiskToCheck = this.vertexToDisk(diskToCheck);
+    if(vertexToDisk.angleBetween(vertexToDiskToCheck) > 0) {
+      return true;
+    }
+    return false;
+  }
+  
   /*********** ROTATION FUNCTIONS ******************/
   /*Returns the disk's equivalent location on the other side of the cone (due to rotation)
   @param disk: the Disk to rotate
@@ -590,12 +665,12 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let rotatedDisks = [];
     
     //draw disks
-    for (let disk of this.disks) {
-      disk.displayDisk(180, [0,0,0,0]); 
-    }
-
     for(let disk of this.extraDisks) {
       disk.displayDisk([240, 240, 240, 230], [200,200,200,230]);
+    }
+    
+    for (let disk of this.disks) {
+      disk.displayDisk(180, [0,0,0,0]); 
     }
 
     //add the text to the disks

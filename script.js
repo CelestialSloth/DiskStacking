@@ -10,7 +10,7 @@ function setup() {
   background(255);
   
   //exampleCone = new StackingCone(windowWidth/2, windowHeight-windowWidth/(4*tan(coneAngle/2)), coneAngle);
-  exampleCone = new StackingCone(0, -0.8, 40, 0.05);
+  exampleCone = new StackingCone(0, -0.8, 57, 0.05);
 
  
 }
