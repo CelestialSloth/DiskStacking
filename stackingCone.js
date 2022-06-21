@@ -34,11 +34,22 @@ class StackingCone {
     this.setUpFirstFront();
   }
 
+  /*@return: an array with two values, 0 being the lowest possible height of the first disk, and 1 being the highest possible height of the first disk.*/
+  firstDiskHeightRange() {
+    let lowest = this.diskRadius/sin(this.angle/2);
+    let highest = 2*lowest;
+    return [lowest,highest];
+  }
   /*Set up the first default disk and the first index, then 
-   add them to the disk array and front array*/
-  setUpFirstFront() {
+   add them to the disk array and front array.
+  @param height: number in range [0,1]. How high should the first disk be placed, 0 being as low as it can be and 1 being as high as it can be.*/
+  setUpFirstFront(height = 0) {
+    //clear disks and front, in case they already had data.
+    this.disks = [];
+    this.front = [];
+    
     angleMode(DEGREES);
-    let firstdisk = new Disk(0,-(-this.diskRadius/sin(this.angle/2)),this.diskRadius);
+    let firstdisk = new Disk(0,this.diskRadius/sin(this.angle/2),this.diskRadius);
     this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
     this.front.push(firstdisk);
@@ -128,7 +139,7 @@ class StackingCone {
         //print("Checking for children from disks " + frontDisk.id + " and " + diskToCheck.id);
 
         //if the disks are too far apart, OR if there are no more disks to check, we're done looking
-        if(this.angularDistanceBtwnDisks(frontDisk, diskToCheck) > 4*this.diskRadius || extendedFrontIndex >= this.extendedFront.length) {
+        if(this.diskDistance(frontDisk, diskToCheck) > 1 || extendedFrontIndex >= this.extendedFront.length) {
           //print("  angularDistance is too much. continue");
           continueWhileLoop = false;
           continue;
@@ -224,26 +235,22 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     }
 
     //grab the leftmost disk from the left list, and rightmost disk from the right list
-    let maxAngularDistLeft = 0;
+    let maxAngularDistLeft = -1;
     let farthestLeftDisk = disksTouchingLeft[0];
-    
     for(let disk of disksTouchingLeft) {
-      
-      if(this.angularDistanceBtwnDisks(child, disk) > maxAngularDistLeft) {
+      if(this.diskDistance(child, disk) > maxAngularDistLeft) {
         
-        maxAngularDistLeft = this.angularDistanceBtwnDisks(child, disk);
+        maxAngularDistLeft = this.diskDistance(child, disk);
         farthestLeftDisk = disk;
       }
     }
 
-    let maxAngularDistRight = 0;
+    let maxAngularDistRight = -1;
     let farthestRightDisk = disksTouchingRight[0];
-    
     for(let disk of disksTouchingRight) {
-      
-      if(this.angularDistanceBtwnDisks(child, disk) > maxAngularDistRight) {
+      if(this.diskDistance(child, disk) > maxAngularDistRight) {
         
-        maxAngularDistRight = this.angularDistanceBtwnDisks(child, disk);
+        maxAngularDistRight = this.diskDistance(child, disk);
         farthestRightDisk = disk;
       }
     }
@@ -346,7 +353,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     
     this.extendedFront = [...this.front]; //shallow copy front[]
 
-    let aDistance; //represents the true distance between rightmostFrontDisk and another disk in the front.
+    let diskDistance; //represents the number of disks that could fit between rightmostFrontDisk and another disk in the front.
     let indexToRotate = 0; //the index of the next disk in the front to possibly rotate
     let continueWhileLoop = true;
 
@@ -355,10 +362,10 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       let diskToRotate = this.extendedFront[indexToRotate];
       let rotatedDisk = this.rotateRight(diskToRotate);
       //print(rotatedDisk);
-      aDistance = this.angularDistanceBtwnDisks(rightmostFrontDisk, rotatedDisk);
-      //print("  " + this.aDistance);
+      diskDistance = this.diskDistance(rightmostFrontDisk, rotatedDisk);
+
       //if the disks are too far apart, end this while loop
-      if(aDistance > 4*this.diskRadius) {
+      if(diskDistance > 1) {
         continueWhileLoop = false;
       }
       //also end the loop if we've rotated everything in this.front
@@ -502,20 +509,30 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
   /******** DISTANCE FUNCTIONS ********************/
   
-  /*Used in generateExtendedFront(). Finds the "angular" distance between disks (ie, [θ1-θ2]*r) and reports it. It does not account for rotation because that could cause problems with small fronts.
+  /*Used in generateExtendedFront(). Determines the approximate number of disks that could fit between two given disks, the same distance from the cone vertex as disk1. It does not account for rotation because that could cause problems with small fronts.
   @param disk1: the disk we want the "angular" distance from.
   @param disk2: the other disk to compare
   @return the "angular" distance between the given disks*/
-  angularDistanceBtwnDisks(disk1, disk2) {
+  diskDistance(disk1, disk2) {
+    //print("Inside diskDistance");
     //angular distance
     let vertexToDisk1 = this.vertexToDisk(disk1);
     let vertexToDisk2 = this.vertexToDisk(disk2);
     let distToVertex = this.distanceToVertex(disk1); //Assumes we're using the first disk as the comparison
+
+    //print("going to calculate angles");
     
     angleMode(RADIANS);
-    let angularDist = abs(vertexToDisk1.angleBetween(vertexToDisk2)) * distToVertex;
+    let angleBetweenDisks = abs(vertexToDisk1.angleBetween(vertexToDisk2)); //angle between disk1 and disk2
+    //print("angleBetweenDisks: " + angleBetweenDisks);
+
+    let angleBtwnAdjacentDisks = abs(2*asin(this.diskRadius/distToVertex)); //the   angle between two disks that are touching (both disks at same dist from vertex as disk1)
+    let numDisks = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
+
+    //print("angleBtwnAdjacentDisks: " + angleBtwnAdjacentDisks);
+    //print("numDisks: " + numDisks);
     
-    return angularDist;
+    return numDisks;
   }
 
    /*Finds the actual distance between two disks, accounting for rotation.
