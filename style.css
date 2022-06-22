@@ -1,0 +1,44 @@
+h1 {
+  font-family: Futura, Arial, Helvetica, sans-serif;
+}
+
+p {
+  font-family: Futura, Arial, Helvetica, sans-serif;
+  display: inline-block;
+}
+.diskJS {
+  display: inline-block;
+  padding: 1rem 1rem;
+  vertical-align: middle;
+}
+.settings {
+  font-family: Futura, Arial, Helvetica, sans-serif;
+  display: inline-block;
+  padding: 0.25rem 0.25rem;
+  vertical-align: middle;
+  width: 80%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 60%;
+  height: 15px;
+  background: #d3d3d3;
+  display: inline-block;
+  
+}
+
+button {
+  border: none;
+  color: white;
+  background: black;
+  padding: 1rem 1rem;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  font-family: Futura, Arial, Helvetica, sans-serif;
+}

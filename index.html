@@ -8,8 +8,35 @@
     <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
   </head>
   <body>
-    <script src="script.js"></script>
-    <script src="disk.js"></script>
-    <script src="stackingCone.js"></script>
+    <h1>Disk Stacking on a Cone</h1>
+    
+    <div class="Settings">
+      <p>Height</p>
+      <input type="range" min="0" max = "100" value="50" class="slider" id="heightSlider">
+      <br>
+      <p>Angle</p>
+      <input type="range" min="15" max = "180" value="50" class="slider" id="angleSlider">
+    </div>
+          
+    <button id="resetButton">Restart with settings</button>
+    
+    <div class="diskJS">
+      <script src="script.js"></script>
+      <script src="disk.js"></script>
+      <script src="stackingCone.js"></script>
+    </div>
+      
+
+    <script>
+      document.getElementById("resetButton").onclick = function(){restart()};
+
+      //restarts the cone, using the current values of the sliders as parameters
+      function restart() {
+        let height = document.getElementById("heightSlider").value/100;
+        let angle = document.getElementById("angleSlider").value;
+        resetCone(angle*1, height);
+      }
+    </script>
+    
   </body>
 </html>

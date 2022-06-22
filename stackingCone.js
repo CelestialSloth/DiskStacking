@@ -1,55 +1,53 @@
 /**This class represents the Cone, which controls the disk stacking. It contains methods related to disk stacking calculations and tasks.*/
 
 /**
-Test angularDistanceBetweenDisks for angular distances. Note that this could overestimate distances (ie, a curved 4*r is a little less than 4*r)
-
 Note:
 * rotateOntoCone makes some assumptions that could be problematic with larger angles
 */
-
-/*Note: work on findParents() method!!!*/
 
 class StackingCone {
   /* Constructor for the cone
   @param vertexX, vertexY: the x and y values for the vertex; the vertex angle in degrees
   @param angle: the angle of the vertex
-  @param diskRadius: the radius of all the disks on the cone*/
-  constructor(vertexX, vertexY, angle, diskRadius) {
-    this.angle = angle;
+  @param diskRadius: the radius of all the disks on the cone
+  @param height: a float in range [0,1]. How high the first disk should be (relative)*/
+  constructor(vertexX, vertexY, angle, diskRadius, height = 0.9) {
     this.vertexX = vertexX;
     this.vertexY = vertexY;
     this.diskRadius = diskRadius;
+
+    this.reset(angle, height);    
+  }
+
+  /*Resets the cone with the given parameters. Assumes same disk radius and location.
+  @param angle
+  @param height*/
+  reset(angle = 50, height = 0.9) {
+    this.angle = angle;
     
     this.diskNumber = 0; //used as a tag to identify unique disks
     
     this.disks = []; //contains actual disk instances
     this.front = []; //the disks in the front
-
+    
     //these will be used in several functions, and will contain extended versions of the front and disks. (ie, versions where disks have been rotated to make the front seem longer)
     this.extendedFront = [];
 
     //rotated "duplicates" of disks in this.disks, drawn to help visualize the cone more
-    this.extraDisks = []
+    this.extraDisks = [];
+    
+    this.setUpFirstFront(height);
 
-    this.setUpFirstFront();
+    //add extra disks for the visual
+    //this.updateExtraDisks();
   }
 
-  /*@return: an array with two values, 0 being the lowest possible height of the first disk, and 1 being the highest possible height of the first disk.*/
-  firstDiskHeightRange() {
-    let lowest = this.diskRadius/sin(this.angle/2);
-    let highest = 2*lowest;
-    return [lowest,highest];
-  }
   /*Set up the first default disk and the first index, then 
    add them to the disk array and front array.
   @param height: number in range [0,1]. How high should the first disk be placed, 0 being as low as it can be and 1 being as high as it can be.*/
-  setUpFirstFront(height = 0) {
-    //clear disks and front, in case they already had data.
-    this.disks = [];
-    this.front = [];
-    
+  setUpFirstFront(height = 0) { 
     angleMode(DEGREES);
-    let firstdisk = new Disk(0,this.diskRadius/sin(this.angle/2),this.diskRadius);
+    let firstdisk = new Disk(0,(1+height)*this.diskRadius/sin(this.angle/2),this.diskRadius);
     this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
     this.front.push(firstdisk);
@@ -91,6 +89,7 @@ class StackingCone {
 
     //add extra disks for the visual
     this.updateExtraDisks();
+
   }
 
   /*Using the current front, this method determines all the locations where a child disk could be placed. Returns an array of candidates. Should account for rotation
@@ -695,7 +694,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let length = 4;
     this.createTransform();
     
-    strokeWeight(5/windowHeight);
+    strokeWeight(5/height);
     line(0, 0, length*cos(90-this.angle/2), length*sin(90-this.angle/2));
     line(0, 0, -length*cos(90-this.angle/2), length*sin(90-this.angle/2));
 
@@ -736,7 +735,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     push();
     this.createTransform();
     stroke(200, 0, 0);
-    strokeWeight(5/windowHeight);
+    strokeWeight(5/height);
   
     //draw the first front
     let rotatedLastDisk = this.rotateLeft(this.front[this.front.length-1]);
@@ -761,10 +760,10 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     //light red lines.
     stroke(255,175,175);
     fill(255,175,175);
-    strokeWeight(3/windowHeight);
+    strokeWeight(3/height);
 
     //draw lines at 30° intervals from cone vertex
-    let axesLength = sqrt((2*windowWidth/windowHeight)**2+4);
+    let axesLength = sqrt((2*width/height)**2+4);
     angleMode(DEGREES);
     for(let angle = 0; angle < 360; angle += 15) {
       let dx = axesLength*cos(angle);
@@ -775,7 +774,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     //draw circles
     let circleInterval = axesLength/10;
     noFill();
-    for(let r = 0; r < 4*windowWidth/windowHeight; r += circleInterval) {
+    for(let r = 0; r < 4*width/height; r += circleInterval) {
       ellipse(0, 0, r, r);
     }
 
@@ -787,7 +786,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     push();
     this.createTransform();
     stroke(0,0,200);
-    strokeWeight(3/windowHeight);
+    strokeWeight(3/height);
     
     for (let disk of this.disks) {
       if(disk.parents.length >= 1) {
@@ -802,9 +801,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
   /*Puts the canvas into the mode used to draw everything.*/
   createTransform() {
-    translate(windowWidth/2, windowHeight/2);
+    translate(width/2, height/2);
     //before, we're assuming 1 = 100%
-    scale(windowHeight/2);
+    scale(height/2);
     scale(1,-1);
 
     translate(this.vertexX, this.vertexY);
