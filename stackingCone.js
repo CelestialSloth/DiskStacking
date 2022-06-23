@@ -35,6 +35,12 @@ class StackingCone {
 
     //rotated "duplicates" of disks in this.disks, drawn to help visualize the cone more
     this.extraDisks = [];
+
+    //this will become a list of possible child disks for the next iteration. It will be updated each iteration in ignoreOverlappingCandidates() and deleteOverlappingCandidates().
+    this.candidates = [];
+
+    //contains the index in this.front[] of the most recent disk added
+    this.mostRecentFrontDisk;
     
     this.setUpFirstFront(height);
 
@@ -51,6 +57,7 @@ class StackingCone {
     this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
     this.front.push(firstdisk);
+    this.mostRecentFrontDisk = 0;
   }
 
   /**************************************************/
@@ -62,10 +69,10 @@ class StackingCone {
   nextDiskStackingIteration() {
     
     //determine child disk candidates
-    let candidates = this.determineChildCandidates();
+    this.determineChildCandidates();
 
     //find lowest candidate. lowestCandidate = [disk, parent1 ID, parent2 ID]
-    let lowestCandidate = this.findLowestCandidate(candidates);
+    let lowestCandidate = this.findLowestCandidate();
 
     //give it an id
     this.assignNextDiskID(lowestCandidate);
@@ -86,41 +93,57 @@ class StackingCone {
     this.deleteDisksBetweenParents(parent1ID, parent2ID);
     
     //In front[], insert the child disk in the proper location (probably between the parents but there could be exceptions)
-    this.insertChildIntoFront(parent1ID, parent2ID, lowestCandidate);
+    this.mostRecentFrontDisk = this.insertChildIntoFront(parent1ID, parent2ID, lowestCandidate);
 
     //add extra disks for the visual
     this.updateExtraDisks();
 
   }
 
-  /*Using the current front, this method determines all the locations where a child disk could be placed. Returns an array of candidates. Should account for rotation
-  @return the array of candidates*/
+  /*Using the current front, this method determines all the locations where a child disk could be placed. Updates the array of candidates. Should account for rotation. */
   determineChildCandidates() {
 
-    let candidates = [];
-
     //generate an array of child candidates, but they might overlap
-    candidates = this.candidatesIgnoreOverlap();
-    
+    this.candidatesIgnoreOverlap();
+
     //for each candidate, make sure it's not overlapping with other disks in the front
-    this.deleteOverlappingCandidates(candidates);
+    this.deleteOverlappingCandidates();
 
+    
     //rotate all candidates back onto the cone
-    candidates = this.rotateOntoCone(candidates);
-
-    return candidates;
+    this.rotateOntoCone();
+    
   }
 
-  /*Creates a list of candidates, but does not check for overlap
-  @return a list of child candidates, ignoring whether they are overlapping with other disks*/
+  /*Updates the list of candidates, but does not check for overlap.*/
   candidatesIgnoreOverlap() {
-    let candidates = []; //an empty array to be filled with possible child candidates
+    //this.candidates = []; //an empty array to be filled with possible child candidates
     
     //generate extended front, where we rotate disks from the left until they reach more than 4r x units away from the rightmost disk
     this.generateExtendedFront();
+
+    let mostRecentDisk = this.disks[this.disks.length - 1];
+    let rotatedMostRecentDisk = this.rotatedDisk(mostRecentDisk);
+
+    //check for children with each disk in extendedFront
+    for(let extendedFrontIndex = 0; extendedFrontIndex < this.extendedFront.length; extendedFrontIndex ++) {
+      let diskToCheck = this.extendedFront[extendedFrontIndex]; //the disk we're checking
+
+      let potentialChild1 = this.childDisk(mostRecentDisk, diskToCheck);
+      let potentialChild2 = this.childDisk(rotatedMostRecentDisk,diskToCheck)
+        if(potentialChild1 != null) {
+          this.candidates.push(potentialChild1);
+          //continueWhileLoop = false;
+        }
+        if(potentialChild2 != null) {
+          this.candidates.push(potentialChild2);
+          //continueWhileLoop = false;
+        }
+      
+    }
     
     //for each disk in the original front, find any possible children it could have.
-    for(let frontIndex = 0; frontIndex < this.front.length; frontIndex ++) {
+    /*for(let frontIndex = 0; frontIndex < this.front.length; frontIndex ++) {
       let frontDisk = this.front[frontIndex]; //the disk we're starting from
       
       let extendedFrontIndex = frontIndex + 1;
@@ -143,26 +166,24 @@ class StackingCone {
         //if a child could be produced, add it as a candidate
         let potentialChild = this.childDisk(frontDisk, diskToCheck);
         if(potentialChild != null) {
-          candidates.push(potentialChild);
+          this.candidates.push(potentialChild);
           //continueWhileLoop = false;
         } 
         extendedFrontIndex ++;
       }
-    }
-    return candidates;
-
+    }*/
   }
  
   /*Given a list of candidates, this method deletes candidates that overlap with other disks. No return value; the original array that was passed in is altered.
   @param candidates: the array of candidates*/
-  deleteOverlappingCandidates(candidates) {
+  deleteOverlappingCandidates() {
     let disksStartIndex = this.disks.length - this.front.length*2;
     if(disksStartIndex < 0) {disksStartIndex = 0;}
     
     let disksToCheck = this.disks.slice(disksStartIndex);
     
-    for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
-      let candidateToCheck = candidates[candidateIndex];
+    for (let candidateIndex = this.candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
+      let candidateToCheck = this.candidates[candidateIndex];
       let hasOverlap = false;
 
       for (let diskToCheck of disksToCheck) {
@@ -172,7 +193,7 @@ class StackingCone {
         }
       }
       if(hasOverlap) {
-        candidates.splice(candidateIndex, 1);
+        this.candidates.splice(candidateIndex, 1);
       }
       
     }
@@ -182,10 +203,10 @@ class StackingCone {
   @param candidates: an array of candidates to get rotated. Remember, candidates come in an array like this: [[disk, parent1 id, parent2 id], ...]
   @return rotatedDisks: an array with copies of the disks which has now been rotated 
 NOTE: assumes that disks left of cone were rotated one period LEFT and disks on right were rotated on period RIGHT. Could cause problems with larger cone angles.*/
-  rotateOntoCone(candidates) {
+  rotateOntoCone() {
     let rotatedDisks = [];
 
-    for (let disk of candidates) {
+    for (let disk of this.candidates) {
       let rotatedDisk = disk;
       while(this.isOffCone(rotatedDisk)) {
         rotatedDisk = this.rotatedDisk(rotatedDisk);
@@ -193,18 +214,18 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       rotatedDisks.push(rotatedDisk);
     }
 
-    return rotatedDisks;
+    this.candidates = rotatedDisks;
   }
     
   
   /*Given a list of child candidates, this method determines the lowest candidate and returns its index.
   @param candidates: the array of arrays containing candidate children. [[candidate, parent1 id, parent2 id], ...]
   @return the index of the lowest child disk.*/
-  findLowestCandidate(candidates) {
-    let lowestDisk = candidates[0];
+  findLowestCandidate() {
+    let lowestDisk = this.candidates[0];
     let smallestDist = this.distanceToVertex(lowestDisk);
 
-    for (let disk of candidates) {
+    for (let disk of this.candidates) {
       let newDist = this.distanceToVertex(disk);
       if(newDist < smallestDist){
         smallestDist = newDist;
