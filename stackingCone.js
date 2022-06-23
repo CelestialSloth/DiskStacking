@@ -77,9 +77,10 @@ class StackingCone {
     lowestCandidate.parents = this.findParents(lowestCandidate);
     let parent1ID = lowestCandidate.parents[0].id;
     let parent2ID = lowestCandidate.parents[1].id;
-    //print("\nDisk " + lowestCandidate.id);
+    //print("\nChild " + lowestCandidate.id + " at " + lowestCandidate.x + ", " + lowestCandidate.y);
     //print("  left parent: " + parent1ID);
     //print("  right parent: " + parent2ID);
+    //print("******************************");
     
     //In front[], delete disks between parents of the lowest disk.
     this.deleteDisksBetweenParents(parent1ID, parent2ID);
@@ -118,30 +119,25 @@ class StackingCone {
     //generate extended front, where we rotate disks from the left until they reach more than 4r x units away from the rightmost disk
     this.generateExtendedFront();
     
-    //for each disk in original front
+    //for each disk in the original front, find any possible children it could have.
     for(let frontIndex = 0; frontIndex < this.front.length; frontIndex ++) {
       let frontDisk = this.front[frontIndex]; //the disk we're starting from
       
       let extendedFrontIndex = frontIndex + 1;
 
       //check forward until the center of the next disk is more than 4r x units away. Use extended front.
-      let continueWhileLoop = true;
-      while(continueWhileLoop) {
+      while(true) {
         let diskToCheck = this.extendedFront[extendedFrontIndex]; //the disk we're checking 
         
         if(diskToCheck == null) {
           //print("  diskToCheck == null. continue");
-          continueWhileLoop = false;
-          continue;
+          break;
         }
-
-        //print("Checking for children from disks " + frontDisk.id + " and " + diskToCheck.id);
 
         //if the disks are too far apart, OR if there are no more disks to check, we're done looking
         if(this.diskDistance(frontDisk, diskToCheck) > 1 || extendedFrontIndex >= this.extendedFront.length) {
           //print("  angularDistance is too much. continue");
-          continueWhileLoop = false;
-          continue;
+          break;
         }
         
         //if a child could be produced, add it as a candidate
@@ -160,18 +156,25 @@ class StackingCone {
   /*Given a list of candidates, this method deletes candidates that overlap with other disks. No return value; the original array that was passed in is altered.
   @param candidates: the array of candidates*/
   deleteOverlappingCandidates(candidates) {
+    let disksStartIndex = this.disks.length - this.front.length*2;
+    if(disksStartIndex < 0) {disksStartIndex = 0;}
+    
+    let disksToCheck = this.disks.slice(disksStartIndex);
+    
     for (let candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
       let candidateToCheck = candidates[candidateIndex];
       let hasOverlap = false;
 
-      for (let diskToCheck of this.disks) {
+      for (let diskToCheck of disksToCheck) {
         if(this.isOverlap(diskToCheck, candidateToCheck)) {
           hasOverlap = true;
+          break;
         }
       }
       if(hasOverlap) {
         candidates.splice(candidateIndex, 1);
       }
+      
     }
   }
   
@@ -385,6 +388,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param parent1, parent2: two disks that could be parents
   @return: the child disk OR null if no such child exists.*/
   childDisk(parent1, parent2) {
+    //print("\nLooking for child of " + parent1.id + ", " + parent2.id);
     //determine the distance between the disks
     let distBtwnParents = this.distanceBtwnDisks(parent1, parent2);
 
@@ -403,7 +407,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     //two possibilities for children
     let childLocation1 = p5.Vector.add(scaledNormalVector, halfwayPoint);
     let childLocation2 = p5.Vector.add(scaledNormalVector.mult(-1), halfwayPoint);
-
+    //print("  child at " + childLocation1.x + ","+childLocation1.y + " and " + childLocation2.x + ","+childLocation2.y);
     let child;
     //return the highest child
     if(this.distanceToVertex(childLocation1) > this.distanceToVertex(childLocation2)) {
@@ -417,7 +421,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       //print("child is not between parents, returning null");
       return null;
     }
-
+    //print("  Highest child at " + child.x + ", " + child.y);
     //finally, return the child disk
     return child;
   }
