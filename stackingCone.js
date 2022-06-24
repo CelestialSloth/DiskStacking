@@ -31,7 +31,7 @@ class StackingCone {
     this.front = []; //the disks in the front
     
     //these will be used in several functions, and will contain extended versions of the front and disks. (ie, versions where disks have been rotated to make the front seem longer)
-    this.extendedFront = [];
+    this.customFrontWindow = [];
 
     //rotated "duplicates" of disks in this.disks, drawn to help visualize the cone more
     this.extraDisks = [];
@@ -40,7 +40,7 @@ class StackingCone {
     this.candidates = [];
 
     //contains the index in this.front[] of the most recent disk added
-    this.mostRecentFrontDisk;
+    this.mostRecentFrontDiskIndex;
     
     this.setUpFirstFront(height);
 
@@ -57,7 +57,7 @@ class StackingCone {
     this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
     this.front.push(firstdisk);
-    this.mostRecentFrontDisk = 0;
+    this.mostRecentFrontDiskIndex = 0;
   }
 
   /**************************************************/
@@ -93,7 +93,7 @@ class StackingCone {
     this.deleteDisksBetweenParents(parent1ID, parent2ID);
     
     //In front[], insert the child disk in the proper location (probably between the parents but there could be exceptions)
-    this.mostRecentFrontDisk = this.insertChildIntoFront(parent1ID, parent2ID, lowestCandidate);
+    this.mostRecentFrontDiskIndex = this.insertChildIntoFront(parent1ID, parent2ID, lowestCandidate);
 
     //add extra disks for the visual
     this.updateExtraDisks();
@@ -120,16 +120,18 @@ class StackingCone {
     //this.candidates = []; //an empty array to be filled with possible child candidates
     
     //generate extended front, where we rotate disks from the left until they reach more than 4r x units away from the rightmost disk
-    this.generateExtendedFront();
+    this.generateCustomFrontWindow();
 
+    //generate three versions of the most recent disk: it in its current place, and it rotated in both directions
     let mostRecentDisk = this.disks[this.disks.length - 1];
     let rightRotatedRecentDisk = this.rotateRight(mostRecentDisk);
     let leftRotatedRecentDisk = this.rotateLeft(mostRecentDisk);
     
-    //check for children with each disk in extendedFront
-    for(let extendedFrontIndex = 0; extendedFrontIndex < this.extendedFront.length; extendedFrontIndex ++) {
-      let diskToCheck = this.extendedFront[extendedFrontIndex]; //the disk we're checking
+    //check for children with each disk in customFrontWindow
+    for(let customFrontWindowIndex = 0; customFrontWindowIndex < this.customFrontWindow.length; customFrontWindowIndex ++) {
+      let diskToCheck = this.customFrontWindow[customFrontWindowIndex]; //the disk we're checking
 
+      //check for potential children using the three versions of the most recent disk
       let potentialChildren = [];
       potentialChildren.push(this.childDisk(mostRecentDisk, diskToCheck)); 
       potentialChildren.push(this.childDisk(rightRotatedRecentDisk,diskToCheck));     
@@ -179,7 +181,8 @@ class StackingCone {
   deleteOverlappingCandidates() {
     let disksStartIndex = this.disks.length - this.front.length*2;
     if(disksStartIndex < 0) {disksStartIndex = 0;}
-    
+
+    //only need to check a subset of all of the disks -- the most recent few rows
     let disksToCheck = this.disks.slice(disksStartIndex);
     
     for (let candidateIndex = this.candidates.length - 1; candidateIndex >= 0; candidateIndex --) {
@@ -369,37 +372,65 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   /*            FUNCTIONS LEVEL 2                   */
   /**************************************************/
   
-  /*Creates an "extended" front where some disks from the left are copied and rotated rightward. It updates this.extendedFront().*/
-  generateExtendedFront() {
-    let rightmostFrontDisk = this.front[this.front.length-1]; //last disk in front
-    //print("rightmostFrontDisk: " + rightmostFrontDisk.id);
-    
-    this.extendedFront = [...this.front]; //shallow copy front[]
-
-    let diskDistance; //represents the number of disks that could fit between rightmostFrontDisk and another disk in the front.
-    let indexToRotate = 0; //the index of the next disk in the front to possibly rotate
-    let continueWhileLoop = true;
-
-    //generate extended front, where we rotate disks from the left until they reach more than 4r units away from the rightmost disk
-    while(continueWhileLoop) {
-      let diskToRotate = this.extendedFront[indexToRotate];
-      let rotatedDisk = this.rotateRight(diskToRotate);
-      //print(rotatedDisk);
-      diskDistance = this.diskDistance(rightmostFrontDisk, rotatedDisk);
-
-      //if the disks are too far apart, end this while loop
-      if(diskDistance > 1) {
-        continueWhileLoop = false;
-      }
-      //also end the loop if we've rotated everything in this.front
-      else if(this.extendedFront.length >= this.front.length*2) {
-        continueWhileLoop = false;
-      }
+  /*Creates an "extended" front where some disks from the left are copied and rotated rightward. It updates this.customFrontWindow(). Assumes that we only care about whether a disk is 1 away from the most recently added front disk.*/
+  generateCustomFrontWindow() {
+    let mostRecentFrontDisk = this.front[this.mostRecentFrontDiskIndex]; //most recent disk added to front
         
-      //otherwise, rotate the other disk to the right and add it to the extended front
+    this.customFrontWindow = [];
+    
+    let diskDistance; //represents the number of disks that could fit between rightmostFrontDisk and another disk in the front.
+
+    //generate extended front backward
+    let leftIndex = this.mostRecentFrontDiskIndex;
+    let nextLeftDisk;
+    while(true) {
+      //figure out what the next left disk should be (either the next index down, or a rotated version of some disk)
+      if(leftIndex >= 0) {
+        nextLeftDisk = this.front[leftIndex];
+      } 
+      else if(leftIndex < 0 && this.front.length + leftIndex >= 0) 
+      {
+        nextLeftDisk = this.rotateLeft(this.front[this.front.length + leftIndex]);
+      } else {
+        break;
+      }
+
+      diskDistance = this.diskDistance(mostRecentFrontDisk, nextLeftDisk);
+      //if the disks are too far apart, end the while loop
+      if(diskDistance > 1) {
+        break;
+      }
       else {
-        this.extendedFront.push(rotatedDisk);
-        indexToRotate ++;
+        this.customFrontWindow.push(nextLeftDisk);
+        leftIndex --;
+      }
+    }
+    
+    //reverse elements in customFrontWindow
+    this.customFrontWindow.reverse();
+
+    //generate extended front forward
+    let rightIndex = this.mostRecentFrontDiskIndex + 1;
+    let nextRightDisk;
+    while(true) {
+      if(rightIndex < this.front.length) {
+        nextRightDisk = this.front[rightIndex];
+      }
+      else if(rightIndex >= this.front.length && rightIndex - this.front.length < this.front.length) {
+        nextRightDisk = this.rotateRight(this.front[rightIndex - this.front.length]);
+      }
+      else {
+        break;
+      }
+
+      diskDistance = this.diskDistance(mostRecentFrontDisk, nextRightDisk);
+      //if the disks are too far apart, end the while loop
+      if(diskDistance > 1) {
+        break;
+      }
+      else {
+        this.customFrontWindow.push(nextRightDisk);
+        rightIndex ++;
       }
     }
   }
