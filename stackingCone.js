@@ -45,7 +45,7 @@ class StackingCone {
     this.setUpFirstFront(height);
 
     //add extra disks for the visual
-    //this.updateExtraDisks();
+    this.updateExtraDisks();
   }
 
   /*Set up the first default disk and the first index, then 
@@ -143,37 +143,6 @@ class StackingCone {
         }
       }
     }
-    
-    //for each disk in the original front, find any possible children it could have.
-    /*for(let frontIndex = 0; frontIndex < this.front.length; frontIndex ++) {
-      let frontDisk = this.front[frontIndex]; //the disk we're starting from
-      
-      let extendedFrontIndex = frontIndex + 1;
-
-      //check forward until the center of the next disk is more than 4r x units away. Use extended front.
-      while(true) {
-        let diskToCheck = this.extendedFront[extendedFrontIndex]; //the disk we're checking 
-        
-        if(diskToCheck == null) {
-          //print("  diskToCheck == null. continue");
-          break;
-        }
-
-        //if the disks are too far apart, OR if there are no more disks to check, we're done looking
-        if(this.diskDistance(frontDisk, diskToCheck) > 1 || extendedFrontIndex >= this.extendedFront.length) {
-          //print("  angularDistance is too much. continue");
-          break;
-        }
-        
-        //if a child could be produced, add it as a candidate
-        let potentialChild = this.childDisk(frontDisk, diskToCheck);
-        if(potentialChild != null) {
-          this.candidates.push(potentialChild);
-          //continueWhileLoop = false;
-        } 
-        extendedFrontIndex ++;
-      }
-    }*/
   }
  
   /*Given a list of candidates, this method deletes candidates that overlap with other disks. No return value; the original array that was passed in is altered.
@@ -353,14 +322,15 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
   /*Ensures that there is a rotated version of the first, second, and second last, and last disk in the current front are drawn on the screen.*/
   updateExtraDisks() {
-    let diskIndicesToCheck = [0, 1, this.front.length-2, this.front.length-1];
-
-    for(let index of diskIndicesToCheck) {
+    let frontIndicesToCheck = [0, 1, this.front.length-2, this.front.length-1];
+    
+    for(let index of frontIndicesToCheck) {
+      
       //make sure that front[] has that index
-      if(index > this.front.length-1) {continue;}
-
+      if(index > this.front.length-1 || index < 0) {continue;}
+      
       //check if the disk at that index is in extraDisks. If not, add it.
-      let indexInExtraDisks = this.findIndexWithID(this.extraDisks, this.front[index]);
+      let indexInExtraDisks = this.findIndexWithID(this.extraDisks, this.front[index].id);
       if(indexInExtraDisks == null) {
         this.extraDisks.push(this.rotatedDisk(this.front[index]));
       }
@@ -623,6 +593,22 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     return createVector(disk.x, disk.y);
   }
 
+  /*Creates a vector from one disk to another.
+  @param disk1: the start point.
+  @param disk2: the end point.
+  @return p5 Vector: a vector from disk1 to disk2*/
+  diskToDisk(disk1, disk2) {
+    return createVector(disk2.x - disk1.x, disk2.y - disk1.y);
+  }
+  
+  /*Tests whether two disks are touching at all.
+  @param disk1, disk2: this disks to check
+  @return T/F: whether the two disks are touching*/
+  areTouching(disk1, disk2) {
+    let tolerance = 10**(-3);
+    return this.distanceBtwnDisks(disk1, disk2) < 2*this.diskRadius + tolerance;
+  }
+  
   /*Tests whether the diskToCheck touches the disk on the left side.
   @param disk: the disk
   @param diskToCheck: we want to check if this disk touches "disk" on "disk's" left side.
@@ -712,6 +698,28 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     return new Disk(vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
 
+  /************PARASTICHY FUNCTIONS *****************/
+  /*Given two disks, this method determines if the line segment between them would be considered an "up" segment.
+  @param leftDisk: the disk whose center is the left end of the segment.
+  @param rightDisk: the disk whose center is the right end of the segment. */
+  isUpSegment(leftDisk, rightDisk) {
+
+    //vector to left disk
+    let vertexToLeft = this.vertexToDisk(leftDisk);
+    
+    //vector from left disk to right disk
+    let leftToRight = this.diskToDisk(leftDisk, rightDisk);
+    
+    //calculate dot product
+    let dotProduct = vertexToLeft.dot(leftToRight);
+    
+    //if dot product is positive, ...
+    if(dotProduct > 0) {
+      return true;
+    }
+  }
+
+  
   /************** ID FUNCTIONS *********************/
   /*This method searches an array of disks for a disk with a given id. It returns the index of the first disk in the array with that id, or null if the element doesn't exist.
   @param array: an array of disks to search
@@ -790,20 +798,37 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   drawFront() {
     push();
     this.createTransform();
-    stroke(200, 0, 0);
+    //stroke(200, 0, 0);
     strokeWeight(5/height);
-  
-    //draw the first front
-    let rotatedLastDisk = this.rotateLeft(this.front[this.front.length-1]);
-    let firstDisk = this.front[0];
-    line(rotatedLastDisk.x, rotatedLastDisk.y, firstDisk.x, firstDisk.y);
     
     //draw most fronts
     for(let index = 0; index < this.front.length - 1; index ++) {
       let disk1 = this.front[index];
       let disk2 = this.front[index + 1];
-  
+
+      //different color for up/down segments
+      if(this.isUpSegment(disk1, disk2)) {
+        stroke(200, 0, 0);
+      }
+      else {
+        stroke(0, 200, 0);
+      }
+      
       line(disk1.x, disk1.y, disk2.x, disk2.y);
+    }
+
+    //draw the last front
+    let rotatedFirstDisk = this.rotateRight(this.front[0]);
+    let lastDisk = this.front[this.front.length-1];
+    if(this.areTouching(rotatedFirstDisk, lastDisk)) {
+      //different color for up/down segments
+      if(this.isUpSegment(lastDisk, rotatedFirstDisk)) {
+        stroke(200, 0, 0);
+      }
+      else {
+        stroke(0, 200, 0);
+      }
+      line(rotatedFirstDisk.x, rotatedFirstDisk.y, lastDisk.x, lastDisk.y);
     }
     pop();
   }
