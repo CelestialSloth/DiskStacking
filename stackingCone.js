@@ -123,23 +123,23 @@ class StackingCone {
     this.generateExtendedFront();
 
     let mostRecentDisk = this.disks[this.disks.length - 1];
-    let rotatedMostRecentDisk = this.rotatedDisk(mostRecentDisk);
-
+    let rightRotatedRecentDisk = this.rotateRight(mostRecentDisk);
+    let leftRotatedRecentDisk = this.rotateLeft(mostRecentDisk);
+    
     //check for children with each disk in extendedFront
     for(let extendedFrontIndex = 0; extendedFrontIndex < this.extendedFront.length; extendedFrontIndex ++) {
       let diskToCheck = this.extendedFront[extendedFrontIndex]; //the disk we're checking
 
-      let potentialChild1 = this.childDisk(mostRecentDisk, diskToCheck);
-      let potentialChild2 = this.childDisk(rotatedMostRecentDisk,diskToCheck)
-        if(potentialChild1 != null) {
-          this.candidates.push(potentialChild1);
-          //continueWhileLoop = false;
+      let potentialChildren = [];
+      potentialChildren.push(this.childDisk(mostRecentDisk, diskToCheck)); 
+      potentialChildren.push(this.childDisk(rightRotatedRecentDisk,diskToCheck));     
+      potentialChildren.push(this.childDisk(leftRotatedRecentDisk,diskToCheck));
+
+      for(let potentialChild of potentialChildren) {
+        if(potentialChild != null) {
+          this.candidates.push(potentialChild);
         }
-        if(potentialChild2 != null) {
-          this.candidates.push(potentialChild2);
-          //continueWhileLoop = false;
-        }
-      
+      }
     }
     
     //for each disk in the original front, find any possible children it could have.
