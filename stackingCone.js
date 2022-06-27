@@ -61,7 +61,7 @@ class StackingCone {
     //place the first disk on the left side of the cone, at the appropriate height
     let initialHeight = (1+height)*this.diskRadius/this.p.sin(this.angle/2);
     let theta = (180 - this.angle)/2;
-    let firstdisk = new Disk(initialHeight * -this.p.cos(theta), initialHeight * this.p.sin(theta),this.diskRadius);
+    let firstdisk = new Disk(this.p, initialHeight * -this.p.cos(theta), initialHeight * this.p.sin(theta),this.diskRadius);
 
     //set all the variables that are dependent on the first disk
     this.assignNextDiskID(firstdisk);
@@ -483,9 +483,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let child;
     //return the highest child
     if(this.distanceToVertex(childLocation1) > this.distanceToVertex(childLocation2)) {
-      child = new Disk(childLocation1.x, childLocation1.y, this.diskRadius);
+      child = new Disk(this.p, childLocation1.x, childLocation1.y, this.diskRadius);
     } else {
-      child = new Disk(childLocation2.x, childLocation2.y, this.diskRadius);
+      child = new Disk(this.p, childLocation2.x, childLocation2.y, this.diskRadius);
     }
 
     //run opposedness test (ie, is the child actually "between" the two parents)
@@ -735,7 +735,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let vertexToDisk = this.vertexToDisk(disk);
     this.p.angleMode(this.p.DEGREES);
     vertexToDisk.rotate(360-this.angle);
-    return new Disk(vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
+    return new Disk(this.p, vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
 
   /*Generates a disk rotated to the left
@@ -745,7 +745,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let vertexToDisk = this.vertexToDisk(disk);
     this.p.angleMode(this.p.DEGREES);
     vertexToDisk.rotate(this.angle);
-    return new Disk(vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
+    return new Disk(this.p, vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
 
   /************PARASTICHY FUNCTIONS *****************/
@@ -813,14 +813,15 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     this.p.line(0, 0, -length*this.p.cos(90-this.angle/2), length*this.p.sin(90-this.angle/2));
 
     let rotatedDisks = [];
+
     
     //draw disks
     for(let disk of this.extraDisks) {
-      disk.displayDisk(this.p, [240, 240, 240, 230], [200,200,200,230]);
+      disk.displayDisk([240, 240, 240, 230], [200,200,200,230]);
     }
     
     for (let disk of this.disks) {
-      disk.displayDisk(this.p, 180, [0,0,0,0]); 
+      disk.displayDisk(180, [0,0,0,0]); 
     }
 
     //add the text to the disks
@@ -828,7 +829,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       this.p.push();
       this.p.translate(disk.x, disk.y);
       this.p.scale(1,-1);
-      disk.displayDiskText(this.p);
+      disk.displayDiskText();
       this.p.pop();
     }
 
@@ -836,7 +837,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       this.p.push();
       this.p.translate(disk.x, disk.y);
       this.p.scale(1,-1);
-      disk.displayDiskText(this.p, [200]);
+      disk.displayDiskText([200]);
       this.p.pop();
     }
 

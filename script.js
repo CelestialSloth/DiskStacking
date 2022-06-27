@@ -57,24 +57,43 @@ var conep5Function = function( p ) {
         document.getElementById("parastichyNumbersText").innerHTML = reportParastichyNumbers();
     }
   }
-
-  
-
-
 }
 
 //do everything needed to have the cone drawn on the screen
 var conep5 = new p5(conep5Function);
 
+
+/*Another closure function for p5 instance mode.*/
+var graphp5Function = function (p) {
+
+  let graph;
+  
+  p.setup = function() {
+    let canvas = p.createCanvas(0.5 * p.windowWidth, 0.5 * p.windowHeight );
+    canvas.parent('graphCanvas');
+    p.background(255,0,0);
+    graph = new ParastichyGraph(p);
+  }
+
+  p.draw = function() {
+    graph.update(cone.frontData);
+    graph.drawGraph();
+  }
+}
+
+//do everything needed to have the graph drawn on the screen
+var graphp5 = new p5(graphp5Function);
+
+
+
+
+/*resets the cone. Called form the "Restart with settings" button.*/
 function resetCone(angle = 130, height = 0.6) {
   cone.reset(angle,height);
 }
 
-/*Returns a string that reports the current parastichy numbers.*/
+/*Returns a string that reports the current parastichy numbers. Used to write the parastichy numbers below the disk stacking app.*/
 function reportParastichyNumbers() {
   let currentFrontData = cone.frontData[cone.frontData.length - 1];
   return (currentFrontData[0] + ", " + currentFrontData[1]);
 }
-
-
-

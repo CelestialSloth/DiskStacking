@@ -5,8 +5,8 @@ class Disk {
   @param x, y: the coordinates of the Disk
   @param radius: the radius of the Disk
   @param id *optional*: the disk's id number.*/
-  constructor( x, y, radius, id = -1) {
-    //this.p = p;
+  constructor(p, x, y, radius, id = -1) {
+    this.p = p;
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -17,22 +17,25 @@ class Disk {
   /*Draws the Disk.
   @param fillColor: the color of the disk [r,g,b,a]
   @param strokeColor: the color of the disk outline [r,g,b,a]*/
-  displayDisk(p, fillColor = [200, 200, 200], strokeColor = [0]) {
-    p.fill(fillColor);
-    p.stroke(strokeColor);
-    p.strokeWeight(this.radius*0.1);
-    p.ellipse(this.x, this.y, this.radius*2, this.radius*2);
+  displayDisk(fillColor = [200], strokeColor = [0]) {
     
+    this.p.fill(fillColor);
+    this.p.stroke(strokeColor);
+    this.p.strokeWeight(this.radius*0.1);
+    this.p.ellipse(this.x, this.y, this.radius*2, this.radius*2);
+
+    //if(printSomething) { this.p.print(performance.now());}
   }
 
   /*Draws the Disk text. Is a separate method because of how we use transforms in stackingCone.
   @param color: the color of the text [r,g,b,a]*/
-  displayDiskText(p, color = [0]) {
-    p.fill(color);
-    p.textSize(this.radius*0.8);
-    p.textAlign(p.CENTER,p.CENTER);
-    p.noStroke();
-    p.text(this.id, 0, 0);
+  displayDiskText(color = [0]) {
+    this.p.fill(color);
+    //this.p.fill(0);
+    this.p.textSize(this.radius*0.8);
+    this.p.textAlign(this.p.CENTER,this.p.CENTER);
+    this.p.noStroke();
+    this.p.text(this.id, 0, 0);
   }
 
   /*Compares whether two disks are the same.
