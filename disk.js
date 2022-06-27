@@ -1,12 +1,12 @@
 /**Represents one Disk*/
 class Disk {
   /*Constructor for the Disk
-  @param sketch: the sketch the Disk will exist within
+  @param p: the namespace the Disk will exist within
   @param x, y: the coordinates of the Disk
   @param radius: the radius of the Disk
-  @param text *optional*: any text the disk should display, ie a number*/
+  @param id *optional*: the disk's id number.*/
   constructor( x, y, radius, id = -1) {
-    //this.sketch = sketch;
+    //this.p = p;
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -17,22 +17,22 @@ class Disk {
   /*Draws the Disk.
   @param fillColor: the color of the disk [r,g,b,a]
   @param strokeColor: the color of the disk outline [r,g,b,a]*/
-  displayDisk(sketch, fillColor = [200, 200, 200], strokeColor = [0]) {
-    sketch.fill(fillColor);
-    sketch.stroke(strokeColor);
-    sketch.strokeWeight(this.radius*0.1);
-    sketch.ellipse(this.x, this.y, this.radius*2, this.radius*2);
+  displayDisk(p, fillColor = [200, 200, 200], strokeColor = [0]) {
+    p.fill(fillColor);
+    p.stroke(strokeColor);
+    p.strokeWeight(this.radius*0.1);
+    p.ellipse(this.x, this.y, this.radius*2, this.radius*2);
     
   }
 
   /*Draws the Disk text. Is a separate method because of how we use transforms in stackingCone.
   @param color: the color of the text [r,g,b,a]*/
-  displayDiskText(sketch, color = [0]) {
-    sketch.fill(color);
-    sketch.textSize(this.radius*0.8);
-    sketch.textAlign(sketch.CENTER,sketch.CENTER);
-    sketch.noStroke();
-    sketch.text(this.id, 0, 0);
+  displayDiskText(p, color = [0]) {
+    p.fill(color);
+    p.textSize(this.radius*0.8);
+    p.textAlign(p.CENTER,p.CENTER);
+    p.noStroke();
+    p.text(this.id, 0, 0);
   }
 
   /*Compares whether two disks are the same.

@@ -7,13 +7,13 @@ Note:
 
 class StackingCone {
   /* Constructor for the cone
-  @param sketch: the sketch to draw the cone on
+  @param p: the namespace in which the cone exists. Used for p5 instance mode.
   @param vertexX, vertexY: the x and y values for the vertex; the vertex angle in degrees
   @param angle: the angle of the vertex
   @param diskRadius: the radius of all the disks on the cone
   @param height: a float in range [0,1]. How high the first disk should be (relative)*/
-  constructor(sketch, vertexX, vertexY, angle, diskRadius, height = 0.9) {
-    this.sketch = sketch;
+  constructor(p, vertexX, vertexY, angle, diskRadius, height = 0.9) {
+    this.p = p;
     this.vertexX = vertexX;
     this.vertexY = vertexY;
     this.diskRadius = diskRadius;
@@ -56,12 +56,12 @@ class StackingCone {
    add them to the disk array and front array.
   @param height: number in range [0,1]. How high should the first disk be placed, 0 being as low as it can be and 1 being as high as it can be.*/
   setUpFirstFront(height = 0) { 
-    this.sketch.angleMode(this.sketch.DEGREES);
+    this.p.angleMode(this.p.DEGREES);
 
     //place the first disk on the left side of the cone, at the appropriate height
-    let initialHeight = (1+height)*this.diskRadius/this.sketch.sin(this.angle/2);
+    let initialHeight = (1+height)*this.diskRadius/this.p.sin(this.angle/2);
     let theta = (180 - this.angle)/2;
-    let firstdisk = new Disk(initialHeight * -this.sketch.cos(theta), initialHeight * this.sketch.sin(theta),this.diskRadius);
+    let firstdisk = new Disk(initialHeight * -this.p.cos(theta), initialHeight * this.p.sin(theta),this.diskRadius);
 
     //set all the variables that are dependent on the first disk
     this.assignNextDiskID(firstdisk);
@@ -471,10 +471,10 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     }
 
     //determine the child's position, using simplifying assumptions about radii and angles
-    let vectorP1ToP2 = this.sketch.createVector(parent2.x-parent1.x, parent2.y-parent1.y); //vector pointing in direction of parent2, if placed at parent1
-    let normalVector = this.sketch.createVector(-vectorP1ToP2.y, vectorP1ToP2.x).normalize(); //vector that is normal to vectorP1ToP2
-    let scaledNormalVector = normalVector.mult(0.5 * this.sketch.sqrt((16*this.diskRadius*this.diskRadius) - (distBtwnParents*distBtwnParents))); //scale normalVector so when added to point halfway between parent1 and parent2, final vector is position of a child disk
-    let halfwayPoint = this.sketch.createVector( (parent1.x+parent2.x)/2, (parent1.y+parent2.y)/2);
+    let vectorP1ToP2 = this.p.createVector(parent2.x-parent1.x, parent2.y-parent1.y); //vector pointing in direction of parent2, if placed at parent1
+    let normalVector = this.p.createVector(-vectorP1ToP2.y, vectorP1ToP2.x).normalize(); //vector that is normal to vectorP1ToP2
+    let scaledNormalVector = normalVector.mult(0.5 * this.p.sqrt((16*this.diskRadius*this.diskRadius) - (distBtwnParents*distBtwnParents))); //scale normalVector so when added to point halfway between parent1 and parent2, final vector is position of a child disk
+    let halfwayPoint = this.p.createVector( (parent1.x+parent2.x)/2, (parent1.y+parent2.y)/2);
 
     //two possibilities for children
     let childLocation1 = p5.Vector.add(scaledNormalVector, halfwayPoint);
@@ -503,7 +503,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param parent1, parent2: the two parent Disks
   @return true/false: whether the child is actually between both parents.*/
   isBetweenParents(child, parent1, parent2) {
-    let unitXVector = this.sketch.createVector(1, 0);
+    let unitXVector = this.p.createVector(1, 0);
 
     //create vectors pointing from cone vertex to child/parents
     let childVector = this.vertexToDisk(child);
@@ -516,11 +516,11 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let parent2Angle = parent2Vector.angleBetween(unitXVector);
 
     //check if the child angle is between the two parent angles
-    if(childAngle > this.sketch.min(parent1Angle, parent2Angle) && childAngle < this.sketch.max(parent1Angle, parent2Angle)) {
+    if(childAngle > this.p.min(parent1Angle, parent2Angle) && childAngle < this.p.max(parent1Angle, parent2Angle)) {
       return true;
     }
     //edge case where, say, parent1Angle = -3pi/4, parent2Angle = 3pi/4, childAngle = pi.
-    else if( (this.sketch.min(parent1Angle,parent2Angle) < 0 && this.sketch.max(parent1Angle,parent2Angle) > 0) && (childAngle > this.sketch.max(parent1Angle, parent2Angle) || childAngle < this.sketch.min(parent1Angle, parent2Angle))) {
+    else if( (this.p.min(parent1Angle,parent2Angle) < 0 && this.p.max(parent1Angle,parent2Angle) > 0) && (childAngle > this.p.max(parent1Angle, parent2Angle) || childAngle < this.p.min(parent1Angle, parent2Angle))) {
       return true;
     }
     else{
@@ -561,16 +561,16 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let vertexToDisk = this.vertexToDisk(disk);
     
     let angleBtwnSideAndDisk;
-    this.sketch.angleMode(this.sketch.DEGREES);
+    this.p.angleMode(this.p.DEGREES);
     
     //if on left side, check if over left
     if(disk.x < 0) {
-      let leftConeSide = this.sketch.createVector(-this.sketch.cos(90-this.angle/2), this.sketch.sin(90-this.angle/2));
+      let leftConeSide = this.p.createVector(-this.p.cos(90-this.angle/2), this.p.sin(90-this.angle/2));
       angleBtwnSideAndDisk = vertexToDisk.angleBetween(leftConeSide);
     }
     //if on right side, check if over right
     else {
-      let rightConeSide = this.sketch.createVector(this.sketch.cos(90-this.angle/2), this.sketch.sin(90-this.angle/2));
+      let rightConeSide = this.p.createVector(this.p.cos(90-this.angle/2), this.p.sin(90-this.angle/2));
       angleBtwnSideAndDisk = rightConeSide.angleBetween(vertexToDisk);
     }
 
@@ -597,11 +597,11 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
     //print("going to calculate angles");
     
-    this.sketch.angleMode(this.sketch.RADIANS);
-    let angleBetweenDisks = this.sketch.abs(vertexToDisk1.angleBetween(vertexToDisk2)); //angle between disk1 and disk2
+    this.p.angleMode(this.p.RADIANS);
+    let angleBetweenDisks = this.p.abs(vertexToDisk1.angleBetween(vertexToDisk2)); //angle between disk1 and disk2
     //print("angleBetweenDisks: " + angleBetweenDisks);
 
-    let angleBtwnAdjacentDisks = this.sketch.abs(2*this.sketch.asin(this.diskRadius/distToVertex)); //the   angle between two disks that are touching (both disks at same dist from vertex as disk1)
+    let angleBtwnAdjacentDisks = this.p.abs(2*this.p.asin(this.diskRadius/distToVertex)); //the   angle between two disks that are touching (both disks at same dist from vertex as disk1)
     let numDisks = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
 
     //print("angleBtwnAdjacentDisks: " + angleBtwnAdjacentDisks);
@@ -618,21 +618,21 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let rotatedDisk2Pos = this.rotatedDisk(disk2);
     let rotatedDistance = this.distanceBtwnDisks(disk1, rotatedDisk2Pos);
 
-    return this.sketch.min(nonRotatedDistance, rotatedDistance);
+    return this.p.min(nonRotatedDistance, rotatedDistance);
   }
 
   /*Finds the distance between two disks, NOT accounting for rotation.
   @param disk1, disk2: the two Disks to find the distance between
   @return the distance between the disks*/
   distanceBtwnDisks(disk1, disk2) {
-    return this.sketch.dist(disk1.x, disk1.y, disk2.x, disk2.y);
+    return this.p.dist(disk1.x, disk1.y, disk2.x, disk2.y);
   }
 
   /*Returns the distance of a disk to the cone's vertex
   @param disk: the Disk (or vector coordinates, both of which should have x and y attributes)
   @return the distance of the disk to the cone's vertex*/
   distanceToVertex(disk) {
-    return this.sketch.dist(disk.x, disk.y, 0, 0);
+    return this.p.dist(disk.x, disk.y, 0, 0);
   }
 
   /*Creates a vector from the cone's vertex to the given disk.
@@ -640,7 +640,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @return p5 Vector: a vector from the vertex to the disk */
   vertexToDisk(disk) {
     //create a vector pointing to disk if positioned at cone vertex
-    return this.sketch.createVector(disk.x, disk.y);
+    return this.p.createVector(disk.x, disk.y);
   }
 
   /*Creates a vector from one disk to another.
@@ -648,7 +648,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param disk2: the end point.
   @return p5 Vector: a vector from disk1 to disk2*/
   diskToDisk(disk1, disk2) {
-    return this.sketch.createVector(disk2.x - disk1.x, disk2.y - disk1.y);
+    return this.p.createVector(disk2.x - disk1.x, disk2.y - disk1.y);
   }
   
   /*Tests whether two disks are touching at all.
@@ -716,7 +716,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param disk: the Disk to rotate
   @return (Disk) a Disk in the equivalent position*/
   rotatedDisk(disk) {
-    this.sketch.angleMode(this.sketch.DEGREES);
+    this.p.angleMode(this.p.DEGREES);
     //if on the right side of cone, rotate to left
     //TODO: fix this so it deals with angular stuff. Actually maybe this is always right?
     if(disk.x > 0) {
@@ -733,7 +733,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @return a new rotated Disk*/
   rotateRight(disk) {
     let vertexToDisk = this.vertexToDisk(disk);
-    this.sketch.angleMode(this.sketch.DEGREES);
+    this.p.angleMode(this.p.DEGREES);
     vertexToDisk.rotate(360-this.angle);
     return new Disk(vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
@@ -743,7 +743,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @return a new rotated Disk */
   rotateLeft(disk){
     let vertexToDisk = this.vertexToDisk(disk);
-    this.sketch.angleMode(this.sketch.DEGREES);
+    this.p.angleMode(this.p.DEGREES);
     vertexToDisk.rotate(this.angle);
     return new Disk(vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
@@ -802,54 +802,54 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   /*************** DISPLAY FUNCTIONS ***************/
   /*Draws the cone*/
   display() {
-    this.sketch.fill(0);
-    this.sketch.angleMode(this.sketch.DEGREES);
-    this.sketch.push();
+    this.p.fill(0);
+    this.p.angleMode(this.p.DEGREES);
+    this.p.push();
     let length = 4;
-    this.createTransform(this.sketch);
+    this.createTransform(this.p);
     
-    this.sketch.strokeWeight(5/this.sketch.height);
-    this.sketch.line(0, 0, length*this.sketch.cos(90-this.angle/2), length*this.sketch.sin(90-this.angle/2));
-    this.sketch.line(0, 0, -length*this.sketch.cos(90-this.angle/2), length*this.sketch.sin(90-this.angle/2));
+    this.p.strokeWeight(5/this.p.height);
+    this.p.line(0, 0, length*this.p.cos(90-this.angle/2), length*this.p.sin(90-this.angle/2));
+    this.p.line(0, 0, -length*this.p.cos(90-this.angle/2), length*this.p.sin(90-this.angle/2));
 
     let rotatedDisks = [];
     
     //draw disks
     for(let disk of this.extraDisks) {
-      disk.displayDisk(this.sketch, [240, 240, 240, 230], [200,200,200,230]);
+      disk.displayDisk(this.p, [240, 240, 240, 230], [200,200,200,230]);
     }
     
     for (let disk of this.disks) {
-      disk.displayDisk(this.sketch, 180, [0,0,0,0]); 
+      disk.displayDisk(this.p, 180, [0,0,0,0]); 
     }
 
     //add the text to the disks
     for(let disk of this.disks) {
-      this.sketch.push();
-      this.sketch.translate(disk.x, disk.y);
-      this.sketch.scale(1,-1);
-      disk.displayDiskText(this.sketch);
-      this.sketch.pop();
+      this.p.push();
+      this.p.translate(disk.x, disk.y);
+      this.p.scale(1,-1);
+      disk.displayDiskText(this.p);
+      this.p.pop();
     }
 
     for(let disk of this.extraDisks) {
-      this.sketch.push();
-      this.sketch.translate(disk.x, disk.y);
-      this.sketch.scale(1,-1);
-      disk.displayDiskText(this.sketch, [200]);
-      this.sketch.pop();
+      this.p.push();
+      this.p.translate(disk.x, disk.y);
+      this.p.scale(1,-1);
+      disk.displayDiskText(this.p, [200]);
+      this.p.pop();
     }
 
-    this.sketch.pop();
+    this.p.pop();
 
   }
 
   //draw the front
   drawFront() {
-    this.sketch.push();
-    this.createTransform(this.sketch);
+    this.p.push();
+    this.createTransform(this.p);
     //stroke(200, 0, 0);
-    this.sketch.strokeWeight(5/this.sketch.height);
+    this.p.strokeWeight(5/this.p.height);
     
     //draw most fronts
     for(let index = 0; index < this.front.length - 1; index ++) {
@@ -858,13 +858,13 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
       //different color for up/down segments
       if(this.isUpSegment(disk1, disk2)) {
-        this.sketch.stroke(200, 0, 0);
+        this.p.stroke(200, 0, 0);
       }
       else {
-        this.sketch.stroke(0, 200, 0);
+        this.p.stroke(200, 255, 0);
       }
       
-      this.sketch.line(disk1.x, disk1.y, disk2.x, disk2.y);
+      this.p.line(disk1.x, disk1.y, disk2.x, disk2.y);
     }
 
     //draw the last front
@@ -873,70 +873,70 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     if(this.areTouching(rotatedFirstDisk, lastDisk)) {
       //different color for up/down segments
       if(this.isUpSegment(lastDisk, rotatedFirstDisk)) {
-        this.sketch.stroke(200, 0, 0);
+        this.p.stroke(200, 0, 0);
       }
       else {
-        this.sketch.stroke(0, 200, 0);
+        this.p.stroke(200, 255, 0);
       }
-      this.sketch.line(rotatedFirstDisk.x, rotatedFirstDisk.y, lastDisk.x, lastDisk.y);
+      this.p.line(rotatedFirstDisk.x, rotatedFirstDisk.y, lastDisk.x, lastDisk.y);
     }
-    this.sketch.pop();
+    this.p.pop();
   }
 
   //draw axes
   drawAxes() {
-    this.sketch.push();
-    this.createTransform(this.sketch);
+    this.p.push();
+    this.createTransform(this.p);
 
     //light red lines.
-    this.sketch.stroke(255,175,175);
-    this.sketch.fill(255,175,175);
-    this.sketch.strokeWeight(3/this.sketch.height);
+    this.p.stroke(255,175,175);
+    this.p.fill(255,175,175);
+    this.p.strokeWeight(3/this.p.height);
 
     //draw lines at 30° intervals from cone vertex
-    let axesLength = this.sketch.sqrt((2*this.sketch.width/this.sketch.height)**2+4);
-    this.sketch.angleMode(this.sketch.DEGREES);
+    let axesLength = this.p.sqrt((2*this.p.width/this.p.height)**2+4);
+    this.p.angleMode(this.p.DEGREES);
     for(let angle = 0; angle < 360; angle += 15) {
-      let dx = axesLength*this.sketch.cos(angle);
-      let dy = axesLength*this.sketch.sin(angle);
-      this.sketch.line(0, 0, dx, dy);
+      let dx = axesLength*this.p.cos(angle);
+      let dy = axesLength*this.p.sin(angle);
+      this.p.line(0, 0, dx, dy);
     }
 
     //draw circles
     let circleInterval = axesLength/10;
-    this.sketch.noFill();
-    for(let r = 0; r < 4*this.sketch.width/this.sketch.height; r += circleInterval) {
-      this.sketch.ellipse(0, 0, r, r);
+    this.p.noFill();
+    for(let r = 0; r < 4*this.p.width/this.p.height; r += circleInterval) {
+      this.p.ellipse(0, 0, r, r);
     }
 
-    this.sketch.pop();
+    this.p.pop();
   }
 
   /*Draws the ontological graph (connects child disks to parents)*/
   drawOntologicalGraph() {
-    this.sketch.push();
+    this.p.push();
     this.createTransform();
-    this.sketch.stroke(0,0,200);
-    this.sketch.strokeWeight(3/this.sketch.height);
+    this.p.stroke(0,0,200);
+    this.p.strokeWeight(3/this.p.height);
     
     for (let disk of this.disks) {
       if(disk.parents.length >= 1) {
-        this.sketch.line(disk.parents[0].x, disk.parents[0].y, disk.x, disk.y);
+        this.p.line(disk.parents[0].x, disk.parents[0].y, disk.x, disk.y);
       }
       if(disk.parents.length >= 2) {
-        this.sketch.line(disk.parents[1].x, disk.parents[1].y, disk.x, disk.y); 
+        this.p.line(disk.parents[1].x, disk.parents[1].y, disk.x, disk.y); 
       }
     }
-    this.sketch.pop();
+    this.p.pop();
   }
 
   /*Puts the canvas into the mode used to draw everything.*/
   createTransform() {
-    this.sketch.translate(this.sketch.width/2, this.sketch.height/2);
+    this.p.translate(this.p.width/2, this.p.height/2);
     //before, we're assuming 1 = 100%
-    this.sketch.scale(this.sketch.height/2);
-    this.sketch.scale(1,-1);
+    this.p.scale(this.p.height/2);
+    this.p.scale(1,-1);
 
-    this.sketch.translate(this.vertexX, this.vertexY);
+    this.p.translate(this.vertexX, this.vertexY);
   }
 }
