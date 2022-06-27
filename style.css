@@ -1,5 +1,6 @@
 h1 {
   font-family: Futura, Arial, Helvetica, sans-serif;
+  text-align: center;
 }
 
 p {
@@ -8,7 +9,7 @@ p {
 }
 .diskJS {
   display: inline-block;
-  padding: 1rem 0.5rem;
+  padding: 1rem 0rem
 
 }
 .settings {
@@ -29,7 +30,15 @@ p {
   
 }
 
+.center {
+  position: relative;
+  left: 50%;
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+
 button {
+  
   border: none;
   color: white;
   background: black;
@@ -41,4 +50,6 @@ button {
   margin: 4px 2px;
   cursor: pointer;
   font-family: Futura, Arial, Helvetica, sans-serif;
+
+  
 }
