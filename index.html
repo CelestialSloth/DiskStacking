@@ -20,12 +20,15 @@
           
     <button id="resetButton">Restart with settings</button>
     
-    <div class="diskJS">
+    <div class="diskJS" id="diskStackingCanvas">
       <script src="script.js"></script>
       <script src="disk.js"></script>
       <script src="stackingCone.js"></script>
     </div>
-      
+
+    <div class="parastichyNumbers">
+      <p id="parastichyNumbersText"></p>
+    </div>
 
     <script>
       document.getElementById("resetButton").onclick = function(){restart()};

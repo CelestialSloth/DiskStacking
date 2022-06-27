@@ -8,8 +8,8 @@ p {
 }
 .diskJS {
   display: inline-block;
-  padding: 1rem 1rem;
-  vertical-align: middle;
+  padding: 1rem 0.5rem;
+
 }
 .settings {
   font-family: Futura, Arial, Helvetica, sans-serif;

@@ -29,6 +29,8 @@ class StackingCone {
     
     this.disks = []; //contains actual disk instances
     this.front = []; //the disks in the front
+
+    this.frontData = []; //will contain data about the up/down parastichies in each front
     
     //these will be used in several functions, and will contain extended versions of the front and disks. (ie, versions where disks have been rotated to make the front seem longer)
     this.customFrontWindow = [];
@@ -53,11 +55,19 @@ class StackingCone {
   @param height: number in range [0,1]. How high should the first disk be placed, 0 being as low as it can be and 1 being as high as it can be.*/
   setUpFirstFront(height = 0) { 
     angleMode(DEGREES);
-    let firstdisk = new Disk(0,(1+height)*this.diskRadius/sin(this.angle/2),this.diskRadius);
+
+    //place the first disk on the left side of the cone, at the appropriate height
+    let initialHeight = (1+height)*this.diskRadius/sin(this.angle/2);
+    let theta = (180 - this.angle)/2;
+    let firstdisk = new Disk(initialHeight * -cos(theta), initialHeight * sin(theta),this.diskRadius);
+
+    //set all the variables that are dependent on the first disk
     this.assignNextDiskID(firstdisk);
     this.disks.push(firstdisk);
     this.front.push(firstdisk);
     this.mostRecentFrontDiskIndex = 0;
+
+    this.updateFrontData();
   }
 
   /**************************************************/
@@ -97,6 +107,9 @@ class StackingCone {
 
     //add extra disks for the visual
     this.updateExtraDisks();
+
+    //update front data
+    this.updateFrontData();
 
   }
 
@@ -338,6 +351,41 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
   }
 
+  /*Updates the array containing front data.*/
+  updateFrontData() {
+
+    let numUpSegments = 0;
+    let numDownSegments = 0;
+
+    //check most of the fronts
+    for(let index = 0; index < this.front.length - 1; index ++) {
+      let disk1 = this.front[index];
+      let disk2 = this.front[index + 1];
+
+      //determine if the connection is up or down
+      if(this.isUpSegment(disk1, disk2)) {
+        numUpSegments ++;
+      }
+      else {
+        numDownSegments ++;
+      }
+    }
+
+    //check the last one
+    let rotatedFirstDisk = this.rotateRight(this.front[0]);
+    let lastDisk = this.front[this.front.length-1];
+    if(this.areTouching(rotatedFirstDisk, lastDisk)) {
+      //different color for up/down segments
+      if(this.isUpSegment(lastDisk, rotatedFirstDisk)) {
+        numUpSegments ++;
+      }
+      else {
+        numDownSegments ++;
+      }
+    }
+
+    this.frontData.push([numUpSegments, numDownSegments]);
+  }
   /**************************************************/
   /*            FUNCTIONS LEVEL 2                   */
   /**************************************************/
