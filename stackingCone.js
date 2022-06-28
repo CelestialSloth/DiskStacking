@@ -388,7 +388,6 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       }
     }
 
-    this.frontData.push([numUpSegments, numDownSegments]);
     this.upFrontData.push(numUpSegments);
     this.downFrontData.push(numDownSegments);
   }

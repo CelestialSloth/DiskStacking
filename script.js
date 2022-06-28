@@ -13,17 +13,28 @@ var parastichyGraph = new Chart(parastichyGraphElement, {
   data: {
     labels: [],
     datasets: [{
+      label: "Up parastichies",
       data: [],
+      pointRadius: 0,
       borderColor: "red",
       fill: false
     }, {
+      label: "Down parastichies",
       data: [],
+      pointRadius: 0,
       borderColor: "green",
       fill: false
     }],
   },
   options: {
-    legend: {display: false}
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Iteration Number'
+        }
+      }
+    }     
   }
 })
 
@@ -41,7 +52,7 @@ var conep5Function = function( p ) {
     
     //cone = new StackingCone(0, -.8, 87, 0.075, 1);
     
-    cone = new StackingCone(p, 0, -.8, 100, 0.05, 0);
+    cone = new StackingCone(p, 0, -.8, 40, 0.05, 0);
   
     let startTime = performance.now()
     
@@ -78,7 +89,7 @@ var conep5Function = function( p ) {
 
   //what to do when the user clicks the mouse
   p.mouseClicked = function() {
-    if(p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.width) {
+    if(p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
         cone.nextDiskStackingIteration();
         //also updates the graph!
         updateGraph();
@@ -106,9 +117,8 @@ function reportParastichyNumbers() {
 /*Adds the most recent parastichy numbers to the graph.*/
 function updateGraph() {
   document.getElementById("parastichyNumbersText").innerHTML = reportParastichyNumbers();
-  parastichyGraph.data.datasets[0].data.push(cone.upFrontData[cone.upFrontData.length-1]);
-  parastichyGraph.data.datasets[1].data.push(cone.downFrontData[cone.downFrontData.length-1]);
-  parastichyGraph.data.labels.push(cone.upFrontData.length);
+  parastichyGraph.data.labels.push(cone.upFrontData.length - 1);
+  //don't need to update other data points; they have references to the array
   parastichyGraph.update();
 }
 
