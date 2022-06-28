@@ -33,6 +33,8 @@ class StackingCone {
     this.front = []; //the disks in the front
 
     this.frontData = []; //will contain data about the up/down parastichies in each front
+    this.upFrontData = [];
+    this.downFrontData = [];
     
     //these will be used in several functions, and will contain extended versions of the front and disks. (ie, versions where disks have been rotated to make the front seem longer)
     this.customFrontWindow = [];
@@ -387,6 +389,8 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     }
 
     this.frontData.push([numUpSegments, numDownSegments]);
+    this.upFrontData.push(numUpSegments);
+    this.downFrontData.push(numDownSegments);
   }
   /**************************************************/
   /*            FUNCTIONS LEVEL 2                   */

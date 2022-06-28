@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width">
     <title>repl.it</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
   </head>
   <body>
     
@@ -28,13 +29,14 @@
       <p id="parastichyNumbersText"></p>
     </div>
 
-    <div class="center" id="graphCanvas"></div>
+    <canvas id="parastichyGraph"></canvas>
 
+    <!--div class="center" id="graphCanvas"></div-->
 
     <script src="script.js"></script>
     <script src="disk.js"></script>
     <script src="stackingCone.js"></script>
-    <script src="parastichyGraph.js"></script>
+    <!--<script src="parastichyGraph.js">--></script>
     
     <script>
       document.getElementById("resetButton").onclick = function(){restart()};
