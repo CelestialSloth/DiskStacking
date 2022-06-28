@@ -19,15 +19,15 @@ var conep5Function = function( p ) {
     
     //cone = new StackingCone(0, -.8, 87, 0.075, 1);
     
-    cone = new StackingCone(p, 0, -.8, 80, 0.05, 0.5);
+    cone = new StackingCone(p, 0, -.8, 130, 0.05, 0.7);
   
     let startTime = performance.now()
     
-    /*let iterations = 200;
+    let iterations = 2000;
     for(let i = 0; i < iterations; i ++) {
       cone.nextDiskStackingIteration();
     }
-  */
+    
     let endTime = performance.now()
   
     p.print((endTime-startTime)/100 + " seconds");
@@ -62,21 +62,21 @@ var conep5Function = function( p ) {
 //do everything needed to have the cone drawn on the screen
 var conep5 = new p5(conep5Function);
 
+  let graph;
+
 
 /*Another closure function for p5 instance mode.*/
 var graphp5Function = function (p) {
 
-  let graph;
   
   p.setup = function() {
-    let canvas = p.createCanvas(0.5 * p.windowWidth, 0.5 * p.windowHeight );
+    let canvas = p.createCanvas(0.5 * p.windowWidth, 0.5 * p.windowWidth );
     canvas.parent('graphCanvas');
-    p.background(255,0,0);
-    graph = new ParastichyGraph(p);
+    p.background(255);
+    graph = new ParastichyGraph(p, cone.frontData);
   }
 
   p.draw = function() {
-    graph.update(cone.frontData);
     graph.drawGraph();
   }
 }

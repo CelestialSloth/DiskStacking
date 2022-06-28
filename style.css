@@ -7,11 +7,7 @@ p {
   font-family: Futura, Arial, Helvetica, sans-serif;
   display: inline-block;
 }
-.diskJS {
-  display: inline-block;
-  padding: 1rem 0rem
 
-}
 .settings {
   font-family: Futura, Arial, Helvetica, sans-serif;
   display: inline-block;
@@ -35,6 +31,8 @@ p {
   left: 50%;
   -ms-transform: translateX(-50%);
   transform: translateX(-50%);
+
+  display: inline-block;
 }
 
 button {
@@ -47,7 +45,7 @@ button {
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
-  margin: 4px 2px;
+  margin: 1rem;
   cursor: pointer;
   font-family: Futura, Arial, Helvetica, sans-serif;
 
