@@ -46,20 +46,20 @@ var conep5Function = function( p ) {
   //sets up the canvas, initializes the cone and other variables. Also the graph!
   p.setup = function () {
     
-    let canvas = p.createCanvas(0.95*p.windowWidth, 0.6*p.windowHeight);
+    let canvas = p.createCanvas(0.9*p.windowWidth, 0.6*p.windowHeight);
     canvas.parent('diskStackingCanvas');
     p.background(255);
     
     //cone = new StackingCone(0, -.8, 87, 0.075, 1);
     
-    cone = new StackingCone(p, 0, -.8, 40, 0.05, 0);
+    cone = new StackingCone(p, 0, -.8, 50, 0.08, 1);
   
     let startTime = performance.now()
     
-    let iterations = 100;
+    /*let iterations = 300;
     for(let i = 0; i < iterations; i ++) {
       cone.nextDiskStackingIteration();
-    }
+    }*/
     
     let endTime = performance.now()
   
@@ -111,7 +111,7 @@ function resetCone(angle = 130, height = 0.6) {
 /*Returns a string that reports the current parastichy numbers. Used to write the parastichy numbers below the disk stacking app.*/
 function reportParastichyNumbers() {
   let iteration = cone.upFrontData.length;
-  return (cone.upFrontData[iteration - 1] + ", " + cone.downFrontData[iteration - 1]);
+  return ("Up: " + cone.upFrontData[iteration - 1] + "<br>Down: " + cone.downFrontData[iteration - 1]);
 }
 
 /*Adds the most recent parastichy numbers to the graph.*/

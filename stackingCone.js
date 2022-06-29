@@ -139,21 +139,22 @@ class StackingCone {
     //generate extended front, where we rotate disks from the left until they reach more than 4r x units away from the rightmost disk
     this.generateCustomFrontWindow();
 
-    //generate three versions of the most recent disk: it in its current place, and it rotated in both directions
+    //generate two versions of the most recent disk: it in its current place, and it rotated right
     let mostRecentDisk = this.disks[this.disks.length - 1];
-    let rightRotatedRecentDisk = this.rotateRight(mostRecentDisk);
-    let leftRotatedRecentDisk = this.rotateLeft(mostRecentDisk);
+    //let rightRotatedRecentDisk = this.rotateRight(mostRecentDisk);
     
     //check for children with each disk in customFrontWindow
     for(let customFrontWindowIndex = 0; customFrontWindowIndex < this.customFrontWindow.length; customFrontWindowIndex ++) {
+      
       let diskToCheck = this.customFrontWindow[customFrontWindowIndex]; //the disk we're checking
-
+      //this.p.print("Checking for children of disks " + mostRecentDisk.id + " and " + diskToCheck.id + ", which is at " + diskToCheck.x + "," + diskToCheck.y);
+      
       //check for potential children using the three versions of the most recent disk
       let potentialChildren = [];
       potentialChildren.push(this.childDisk(mostRecentDisk, diskToCheck)); 
-      potentialChildren.push(this.childDisk(rightRotatedRecentDisk,diskToCheck));     
-      potentialChildren.push(this.childDisk(leftRotatedRecentDisk,diskToCheck));
+      //potentialChildren.push(this.childDisk(rightRotatedRecentDisk,diskToCheck));     
 
+      //Todo: if forloop is unnecessary, don't use it!
       for(let potentialChild of potentialChildren) {
         if(potentialChild != null) {
           this.candidates.push(potentialChild);
@@ -229,9 +230,10 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param child: the child Disk
   @return [parent1, parent2]: the parent Disks*/
   findParents(child) {
+    
     let disksTouchingLeft = [];
     let disksTouchingRight = [];
-    
+
     //make list of disks touching child on left and on right
     for (let disk of this.front) {
       
@@ -463,7 +465,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   @param parent1, parent2: two disks that could be parents
   @return: the child disk OR null if no such child exists.*/
   childDisk(parent1, parent2) {
-    //print("\nLooking for child of " + parent1.id + ", " + parent2.id);
+    //this.p.print("\nLooking for child of " + parent1.id + "," + parent2.id);
     //determine the distance between the disks
     let distBtwnParents = this.distanceBtwnDisks(parent1, parent2);
 
@@ -482,7 +484,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     //two possibilities for children
     let childLocation1 = p5.Vector.add(scaledNormalVector, halfwayPoint);
     let childLocation2 = p5.Vector.add(scaledNormalVector.mult(-1), halfwayPoint);
-    //print("  child at " + childLocation1.x + ","+childLocation1.y + " and " + childLocation2.x + ","+childLocation2.y);
+    //this.p.print("  child at " + childLocation1.x + ","+childLocation1.y + " and " + childLocation2.x + ","+childLocation2.y);
     let child;
     //return the highest child
     if(this.distanceToVertex(childLocation1) > this.distanceToVertex(childLocation2)) {
@@ -496,7 +498,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
       //print("child is not between parents, returning null");
       return null;
     }
-    //print("  Highest child at " + child.x + ", " + child.y);
+    //this.p.print("  Highest child at " + child.x + ", " + child.y);
     //finally, return the child disk
     return child;
   }
@@ -587,12 +589,18 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
 
   /******** DISTANCE FUNCTIONS ********************/
   
-  /*Used in generateExtendedFront(). Determines the approximate number of disks that could fit between two given disks, the same distance from the cone vertex as disk1. It does not account for rotation because that could cause problems with small fronts.
+  /*Used in generateCustomFront(). Determines the approximate number of disks that could fit between two given disks, using two different metrics, and returns the smallest result. It does not account for rotation because that could cause problems with small fronts.
+
+* Metric 1: determines how many disks can fit between two given disks the SAME DISTANCE FROM THE CONE VERTEX as disk1. This metric is useful for determining when the *angle* between two disks in the custom front is too large to allow ANY disks at that angle to touch.
+* Metric 2: determines how many disks can fit between the two given disks, positioned as they already are. This metric is useful for determining if you could actually create a disk between disk1 and disk2 that'd be tangent to both.
+
+Returns whichever is smallest. Note that returning negative numbers implies overlap; -1 would mean complete overlap, -0.5 would be half overlap, etc. Also note that this method is really only intended to be used in generateCustomFront and related methods as a way to determine whether more disks should be added to the front.
+
   @param disk1: the disk we want the "angular" distance from.
   @param disk2: the other disk to compare
   @return the "angular" distance between the given disks*/
   diskDistance(disk1, disk2) {
-    //print("Inside diskDistance");
+    /*METRIC 1*/
     //angular distance
     let vertexToDisk1 = this.vertexToDisk(disk1);
     let vertexToDisk2 = this.vertexToDisk(disk2);
@@ -604,13 +612,17 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let angleBetweenDisks = this.p.abs(vertexToDisk1.angleBetween(vertexToDisk2)); //angle between disk1 and disk2
     //print("angleBetweenDisks: " + angleBetweenDisks);
 
-    let angleBtwnAdjacentDisks = this.p.abs(2*this.p.asin(this.diskRadius/distToVertex)); //the   angle between two disks that are touching (both disks at same dist from vertex as disk1)
-    let numDisks = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
+    let angleBtwnAdjacentDisks = this.p.abs(2*this.p.asin(this.diskRadius/distToVertex)); //the angle between two disks that are touching (both disks at same dist from vertex as disk1)
+    let numDisks1 = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
 
     //print("angleBtwnAdjacentDisks: " + angleBtwnAdjacentDisks);
     //print("numDisks: " + numDisks);
+
+    /*METRIC 2*/
+    let distBtwnDisks = this.distanceBtwnDisks(disk1, disk2);
+    let numDisks2 = distBtwnDisks / (2*this.diskRadius) - 1;
     
-    return numDisks;
+    return this.p.min(numDisks1, numDisks2);
   }
 
    /*Finds the actual distance between two disks, accounting for rotation.
@@ -688,13 +700,13 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   touchesRight(disk, diskToCheck) {
     let tolerance = 10**(-3);
     //check nonrotated disk
-    if(!this.isLeftOf(disk, diskToCheck) && this.distanceBtwnDisks(disk, diskToCheck) < 2*this.diskRadius + tolerance) {
+    if(this.isRightOf(disk, diskToCheck) && this.distanceBtwnDisks(disk, diskToCheck) < 2*this.diskRadius + tolerance) {
       return diskToCheck;
     }
     
     //check rotated disk
     let rotatedDiskToCheck = this.rotateRight(diskToCheck);
-    if(!this.isLeftOf(disk, rotatedDiskToCheck) && this.distanceBtwnDisks(disk, rotatedDiskToCheck) < 2*this.diskRadius + tolerance) {
+    if(this.isRightOf(disk, rotatedDiskToCheck) && this.distanceBtwnDisks(disk, rotatedDiskToCheck) < 2*this.diskRadius + tolerance) {
       return rotatedDiskToCheck;
     }
 
@@ -709,6 +721,19 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let vertexToDisk = this.vertexToDisk(disk);
     let vertexToDiskToCheck = this.vertexToDisk(diskToCheck);
     if(vertexToDisk.angleBetween(vertexToDiskToCheck) > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  /*Check if diskToCheck is right of disk. Does not account for rotation.
+  @param disk: the disk
+  @param diskToCheck: the disk to check for rotation
+  @return T/F: whether the disk is right of the diskToCheck*/
+  isRightOf(disk, diskToCheck) {
+    let vertexToDisk = this.vertexToDisk(disk);
+    let vertexToDiskToCheck = this.vertexToDisk(diskToCheck);
+    if(vertexToDisk.angleBetween(vertexToDiskToCheck) < 0) {
       return true;
     }
     return false;
