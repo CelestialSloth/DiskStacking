@@ -1,15 +1,19 @@
+* {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
 h1 {
-  font-family: Futura, Arial, Helvetica, sans-serif;
   text-align: center;
 }
 
-p {
-  font-family: Futura, Arial, Helvetica, sans-serif;
+p, b, em {
+  /*font-family: serif, Arial, Helvetica, sans-serif;*/
   display: inline-block;
 }
 
+
+
 .settings {
-  font-family: Futura, Arial, Helvetica, sans-serif;
   display: inline-block;
   padding: 0.25rem 0.25rem;
   vertical-align: middle;
@@ -47,7 +51,9 @@ button {
   font-size: 16px;
   margin: 1rem;
   cursor: pointer;
-  font-family: Futura, Arial, Helvetica, sans-serif;
-
   
+}
+
+#explainerText {
+  margin: 1em;
 }
