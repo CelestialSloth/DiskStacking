@@ -939,7 +939,7 @@ Returns whichever is smallest. Note that returning negative numbers implies over
     }
 
     //draw circles
-    let circleInterval = axesLength/10;
+    let circleInterval = axesLength/12;
     this.p.noFill();
     for(let r = 0; r < axesLength; r += circleInterval) {
       this.p.ellipse(0, 0, 2*r, 2*r);
