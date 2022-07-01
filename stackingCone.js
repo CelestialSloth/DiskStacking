@@ -245,9 +245,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let maxAngularDistLeft = -1;
     let farthestLeftDisk = disksTouchingLeft[0];
     for(let disk of disksTouchingLeft) {
-      if(this.diskDistance(child, disk) > maxAngularDistLeft) {
+      if(this.diskDistanceMetric1(child, disk) > maxAngularDistLeft) {
         
-        maxAngularDistLeft = this.diskDistance(child, disk);
+        maxAngularDistLeft = this.diskDistanceMetric1(child, disk);
         farthestLeftDisk = disk;
       }
     }
@@ -255,9 +255,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let maxAngularDistRight = -1;
     let farthestRightDisk = disksTouchingRight[0];
     for(let disk of disksTouchingRight) {
-      if(this.diskDistance(child, disk) > maxAngularDistRight) {
+      if(this.diskDistanceMetric1(child, disk) > maxAngularDistRight) {
         
-        maxAngularDistRight = this.diskDistance(child, disk);
+        maxAngularDistRight = this.diskDistanceMetric1(child, disk);
         farthestRightDisk = disk;
       }
     }
@@ -413,7 +413,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
         break;
       }
 
-      diskDistance = this.diskDistance(mostRecentFrontDisk, nextLeftDisk);
+      diskDistance = this.minDiskDistance(mostRecentFrontDisk, nextLeftDisk);
       //if the disks are too far apart, end the while loop
       if(diskDistance > 1) {
         break;
@@ -441,7 +441,7 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
         break;
       }
 
-      diskDistance = this.diskDistance(mostRecentFrontDisk, nextRightDisk);
+      diskDistance = this.minDiskDistance(mostRecentFrontDisk, nextRightDisk);
       //if the disks are too far apart, end the while loop
       if(diskDistance > 1) {
         break;
@@ -638,8 +638,16 @@ Returns whichever is smallest. Note that returning negative numbers implies over
   @param disk1: the disk we want the "angular" distance from.
   @param disk2: the other disk to compare
   @return the "angular" distance between the given disks*/
-  diskDistance(disk1, disk2) {
-    /*METRIC 1*/
+  minDiskDistance(disk1, disk2) {
+    
+    let numDisks1 = this.diskDistanceMetric1(disk1, disk2);
+    let numDisks2 = this.diskDistanceMetric2(disk1, disk2);
+    
+    return this.p.min(numDisks1, numDisks2);
+  }
+  /*METRIC 1. See comments for minDiskDistance*/
+  diskDistanceMetric1(disk1, disk2) {
+    
     //angular distance
     let vertexToDisk1 = this.vertexToDisk(disk1);
     let vertexToDisk2 = this.vertexToDisk(disk2);
@@ -652,16 +660,18 @@ Returns whichever is smallest. Note that returning negative numbers implies over
     //print("angleBetweenDisks: " + angleBetweenDisks);
 
     let angleBtwnAdjacentDisks = this.p.abs(2*this.p.asin(this.diskRadius/distToVertex)); //the angle between two disks that are touching (both disks at same dist from vertex as disk1)
-    let numDisks1 = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
+    let numDisks = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
 
-    //print("angleBtwnAdjacentDisks: " + angleBtwnAdjacentDisks);
-    //print("numDisks: " + numDisks);
+    return numDisks;
+  }
 
-    /*METRIC 2*/
-    let distBtwnDisks = this.distanceBtwnDisks(disk1, disk2);
-    let numDisks2 = distBtwnDisks / (2*this.diskRadius) - 1;
+  /*METRIC 2. See comments for minDiskDistance*/
+  diskDistanceMetric2(disk1, disk2) {
     
-    return this.p.min(numDisks1, numDisks2);
+    let distBtwnDisks = this.distanceBtwnDisks(disk1, disk2);
+    let numDisks = distBtwnDisks / (2*this.diskRadius) - 1;
+
+    return numDisks;
   }
 
    /*Finds the actual distance between two disks, accounting for rotation.
