@@ -245,9 +245,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let maxAngularDistLeft = -1;
     let farthestLeftDisk = disksTouchingLeft[0];
     for(let disk of disksTouchingLeft) {
-      if(this.diskDistanceMetric1(child, disk) > maxAngularDistLeft) {
+      if(this.diskDistance(child, disk) > maxAngularDistLeft) {
         
-        maxAngularDistLeft = this.diskDistanceMetric1(child, disk);
+        maxAngularDistLeft = this.diskDistance(child, disk);
         farthestLeftDisk = disk;
       }
     }
@@ -255,9 +255,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     let maxAngularDistRight = -1;
     let farthestRightDisk = disksTouchingRight[0];
     for(let disk of disksTouchingRight) {
-      if(this.diskDistanceMetric1(child, disk) > maxAngularDistRight) {
+      if(this.diskDistance(child, disk) > maxAngularDistRight) {
         
-        maxAngularDistRight = this.diskDistanceMetric1(child, disk);
+        maxAngularDistRight = this.diskDistance(child, disk);
         farthestRightDisk = disk;
       }
     }
@@ -397,7 +397,6 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
     this.customFrontWindow = [];
     
     let diskDistance; //represents the number of disks that could fit between rightmostFrontDisk and another disk in the front.
-    let tolerance = 10**(-3);
 
     //generate extended front backward
     let leftIndex = this.mostRecentFrontDiskIndex;
@@ -414,10 +413,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
         break;
       }
 
-      diskDistance = this.p.min(this.diskDistanceMetric1(mostRecentFrontDisk, nextLeftDisk), this.diskDistanceMetric2(mostRecentFrontDisk, nextLeftDisk));
-      console.log("Might add disk " + nextLeftDisk.id + " to the front window. Its distance is " + diskDistance);
+      diskDistance = this.diskDistance(mostRecentFrontDisk, nextLeftDisk);
       //if the disks are too far apart, end the while loop
-      if(diskDistance > 1 + tolerance) {
+      if(diskDistance > 1) {
         break;
       }
       else {
@@ -443,9 +441,9 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
         break;
       }
 
-      diskDistance = this.p.min(this.diskDistanceMetric1(mostRecentFrontDisk, nextLeftDisk), this.diskDistanceMetric2(mostRecentFrontDisk, nextLeftDisk));
+      diskDistance = this.diskDistance(mostRecentFrontDisk, nextRightDisk);
       //if the disks are too far apart, end the while loop
-      if(diskDistance > 1 + tolerance) {
+      if(diskDistance > 1) {
         break;
       }
       else {
@@ -629,16 +627,19 @@ NOTE: assumes that disks left of cone were rotated one period LEFT and disks on 
   }
   
   /******** DISTANCE FUNCTIONS ********************/
+  
+  /*Used in generateCustomFront(). Determines the approximate number of disks that could fit between two given disks, using two different metrics, and returns the smallest result. It does not account for rotation because that could cause problems with small fronts.
 
-  /*Metric 1: determines how many disks can fit between two given disks the SAME DISTANCE FROM THE CONE VERTEX as disk1. This metric is useful for determining when the *angle* between two disks in the custom front is too large to allow ANY disks at that angle to touch.
+* Metric 1: determines how many disks can fit between two given disks the SAME DISTANCE FROM THE CONE VERTEX as disk1. This metric is useful for determining when the *angle* between two disks in the custom front is too large to allow ANY disks at that angle to touch.
+* Metric 2: determines how many disks can fit between the two given disks, positioned as they already are. This metric is useful for determining if you could actually create a disk between disk1 and disk2 that'd be tangent to both.
 
-Note that returning negative numbers implies overlap; -1 would mean complete overlap, -0.5 would be half overlap, etc. Does not account for rotation around the cone.
+Returns whichever is smallest. Note that returning negative numbers implies overlap; -1 would mean complete overlap, -0.5 would be half overlap, etc. Also note that this method is really only intended to be used in generateCustomFront and related methods as a way to determine whether more disks should be added to the front.
 
   @param disk1: the disk we want the "angular" distance from.
   @param disk2: the other disk to compare
-
-  @return the number of disks that could fit between disk1 and a "translated" version of disk 2, where the two disks are the same angle apart wrt the cone vertex and the "translated" disk 2 is the same distance from the cone vertex as disk 1.*/
-  diskDistanceMetric1(disk1, disk2) {
+  @return the "angular" distance between the given disks*/
+  diskDistance(disk1, disk2) {
+    /*METRIC 1*/
     //angular distance
     let vertexToDisk1 = this.vertexToDisk(disk1);
     let vertexToDisk2 = this.vertexToDisk(disk2);
@@ -651,25 +652,16 @@ Note that returning negative numbers implies overlap; -1 would mean complete ove
     //print("angleBetweenDisks: " + angleBetweenDisks);
 
     let angleBtwnAdjacentDisks = this.p.abs(2*this.p.asin(this.diskRadius/distToVertex)); //the angle between two disks that are touching (both disks at same dist from vertex as disk1)
-    let numDisks = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
+    let numDisks1 = angleBetweenDisks/angleBtwnAdjacentDisks - 1;
 
     //print("angleBtwnAdjacentDisks: " + angleBtwnAdjacentDisks);
     //print("numDisks: " + numDisks);
-    
-    return numDisks;
-  }
 
-  /*Metric 2: determines how many disks can fit between the two given disks, positioned as they already are. This metric is useful for determining if you could actually create a disk between disk1 and disk2 that'd be tangent to both.
-  
-  Note that returning negative numbers implies overlap; -1 would mean complete overlap, -0.5 would be half overlap, etc. Does not account for rotation around the cone.
-
-  @param disk1: the disk we want the "angular" distance from.
-  @param disk2: the other disk to compare
-  @return how many disks can fit between the two given disks*/
-  diskDistanceMetric2 (disk1, disk2) {
+    /*METRIC 2*/
     let distBtwnDisks = this.distanceBtwnDisks(disk1, disk2);
-    let numDisks = distBtwnDisks / (2*this.diskRadius) - 1;
-    return numDisks;
+    let numDisks2 = distBtwnDisks / (2*this.diskRadius) - 1;
+    
+    return this.p.min(numDisks1, numDisks2);
   }
 
    /*Finds the actual distance between two disks, accounting for rotation.
