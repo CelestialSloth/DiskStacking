@@ -14,7 +14,7 @@
     <h1>Disk Stacking on a Cone</h1>
 
     <div class="center" id="explainerText">
-      <p>There are many ways to model the growth patterns of primordia. One such way, initially developed by [not Turing?], is the disk stacking model. It incorporates [two] features of primordia growth. First, that each new primordia has two or more parent primordia, which it is situated between, above, and is touching. Second, that primordia further from the [tip] of the plant grow faster; this is modeled with the decreasing size of the disks in the cylinder model. </p>
+      <!--p>There are many ways to model the growth patterns of primordia. One such way, initially developed by [not Turing?], is the disk stacking model. It incorporates [two] features of primordia growth. First, that each new primordia has two or more parent primordia, which it is situated between, above, and is touching. Second, that primordia further from the [tip] of the plant grow faster; this is modeled with the decreasing size of the disks in the cylinder model. </p>
 
       <p>This model successfully reproduces common patterns observed in plants: diagonal <b>parastichies</b> appearing in consecutive <b>Fibonacci numbers</b>. <b>Parastichies</b> are spiral patterns of plant organs. <b>Fibonacci numbers</b> are a sequence of numbers, starting with 0 and 1. Subsequent numbers are found by adding the previous two numbers in the sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55…</p>
 
@@ -23,19 +23,23 @@
       <p><em>Disk stacking on a cylinder using a Geogebra app developed by _____________. On a flat surface, the cylinder can be visualized as a rectangle with its vertical edges glued together.
 </em></p>
 
-      <p>This application models another version of the disk stacking model, in which the disk stacking takes place on a cone with disks of constant radius. In this version, the increasing width of the cone, instead of the increasing radius of the disks, models the increasing growth rate of the primordia. The idea to convert [not Turing’s?] model to a cone comes from [initially someone else, also Pau Atela?]. The application shows the cone on a flat surface. Imagine its edges are glued together so the disks are situated on a three dimensional cone. “Rotated” disks are displayed on either side of the cone to assist with visualizing this concept. </p>
+      <p>This application models another version of the disk stacking model, in which the disk stacking takes place on a cone with disks of constant radius. In this version, the increasing width of the cone, instead of the increasing radius of the disks, models the increasing growth rate of the primordia. The idea to convert [not Turing’s?] model to a cone comes from [initially someone else, also Pau Atela?]. The application shows the cone on a flat surface. Imagine its edges are glued together so the disks are situated on a three dimensional cone. “Rotated” disks are displayed on either side of the cone to assist with visualizing this concept. </p-->
       
       <p>In this application, you can add disks to the cone model by clicking. Use the Angle Slider to test different cone angles; larger cone angles correspond to more rapid growth rates. The Height Slider adjusts the height of the first disk placed on the cone. Additionally, this application displays the <b>ontological graph</b> and the <b>front</b>. The <b>ontological graph</b> is composed of the connections between each disk and its “parent” disks. The app displays it as blue line segments. </p>
       <p>The <b>front</b> is a way to “locally” count parastichies. In the app, it is shown with red and yellow line segments; red indicates “up” parastichies and yellow indicates “down” parastichies. The current parastichy count given by the front is written underneath the app, and a chart keeping track of these counts in relation to the number of disks in the model is also displayed underneath the app. For smaller cone angles, this chart will clearly show the model stabilizing when its parastichy counts are consecutive Fibonacci numbers, then either the up parastichy count or the down parastichy count quickly transitioning to the next consecutive Fibonacci number. For larger cone angles, this pattern becomes distorted, ultimately evolving into a <b>quasi-symmetric pattern</b>, in which the parastichy counts are nearly the same.
 </p>
     </div>
     
-    <div class="Settings">
+    <div class="sliderContainer">
       <p>Height</p>
       <input type="range" min="0" max = "100" value="50" class="slider" id="heightSlider">
-      <br>
+      <p id="heightText"></p>
+    </div>
+    
+    <div class="sliderContainer">
       <p>Angle</p>
       <input type="range" min="15" max = "179" value="50" class="slider" id="angleSlider">
+      <p id="angleText"></p>
     </div>
           
     <button class = "center" id="resetButton">Restart with settings</button>
@@ -55,12 +59,25 @@
     <script src="stackingCone.js"></script>
     
     <script>
-      document.getElementById("resetButton").onclick = function(){restart()};
+      // displays the height value
+      let heightSlider = document.getElementById("heightSlider");
+      let heightText = document.getElementById("heightText");
+      heightSlider.oninput = function() {
+        heightText.innerHTML = this.value + "%";
+      }
 
+      //displays the angle value
+      let angleSlider = document.getElementById("angleSlider");
+      let angleText = document.getElementById("angleText");
+      angleSlider.oninput = function() {
+        angleText.innerHTML = this.value + "°";
+      }
+      
       //restarts the cone, using the current values of the sliders as parameters
+      document.getElementById("resetButton").onclick = function(){restart()};
       function restart() {
-        let height = document.getElementById("heightSlider").value/100;
-        let angle = document.getElementById("angleSlider").value;
+        let height = heightSlider.value/100;
+        let angle = angleSlider.value;
         resetCone(angle*1, height);
       }
     </script>

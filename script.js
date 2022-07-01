@@ -1,6 +1,6 @@
 
 /**Notes
-* Errors with angles over 180
+* Errors with angles >= 180
 **/
 let cone;
 
@@ -46,25 +46,19 @@ var conep5Function = function( p ) {
   //sets up the canvas, initializes the cone and other variables. Also the graph!
   p.setup = function () {
     
-    let canvas = p.createCanvas(0.9*p.windowWidth, 0.6*p.windowHeight);
+    let canvas = p.createCanvas(0.9*p.windowWidth, 0.7*p.windowHeight);
     canvas.parent('diskStackingCanvas');
     p.background(255);
     
     //cone = new StackingCone(0, -.8, 87, 0.075, 1);
     
     cone = new StackingCone(p, 0, -.8, 50, 0.08, 1);
-  
-    let startTime = performance.now()
-    
+      
     /*let iterations = 300;
     for(let i = 0; i < iterations; i ++) {
       cone.nextDiskStackingIteration();
     }*/
-    
-    let endTime = performance.now()
-  
-    p.print((endTime-startTime)/100 + " seconds");
-
+      
     document.getElementById("parastichyNumbersText").innerHTML = reportParastichyNumbers();
     
     //update the graph

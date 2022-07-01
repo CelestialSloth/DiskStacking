@@ -6,19 +6,10 @@ h1 {
   text-align: center;
 }
 
-p, b, em {
-  /*font-family: serif, Arial, Helvetica, sans-serif;*/
+p {
   display: inline-block;
 }
 
-
-
-.settings {
-  display: inline-block;
-  padding: 0.25rem 0.25rem;
-  vertical-align: middle;
-  width: 80%;
-}
 
 .slider {
   -webkit-appearance: none;
