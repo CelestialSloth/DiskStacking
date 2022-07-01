@@ -927,7 +927,10 @@ Returns whichever is smallest. Note that returning negative numbers implies over
     this.p.strokeWeight(3/this.p.height);
 
     //draw lines at 30° intervals from cone vertex
-    let axesLength = this.p.sqrt((2*this.p.width/this.p.height)**2+4);
+    //let axesLength = this.p.sqrt((2*this.p.width/this.p.height)**2+4);
+
+    let axesLength = this.p.sqrt((this.p.width/this.p.height + this.p.abs(this.vertexX))**2+(1+this.p.abs(this.vertexY))**2);
+
     this.p.angleMode(this.p.DEGREES);
     for(let angle = 0; angle < 360; angle += 15) {
       let dx = axesLength*this.p.cos(angle);
@@ -938,8 +941,8 @@ Returns whichever is smallest. Note that returning negative numbers implies over
     //draw circles
     let circleInterval = axesLength/10;
     this.p.noFill();
-    for(let r = 0; r < 4*this.p.width/this.p.height; r += circleInterval) {
-      this.p.ellipse(0, 0, r, r);
+    for(let r = 0; r < axesLength; r += circleInterval) {
+      this.p.ellipse(0, 0, 2*r, 2*r);
     }
 
     this.p.pop();
