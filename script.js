@@ -1,7 +1,13 @@
+/********************************************
+SURF 2022
+Copyright (c) 2022 Elaine Demetrion
+Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php 
+********************************************/
 
 /**Notes
 * Errors with angles >= 180
 **/
+
 let cone;
 
 p5.disableFriendlyErrors = true; // disables FES
@@ -49,9 +55,7 @@ var conep5Function = function( p ) {
     let canvas = p.createCanvas(0.9*p.windowWidth, 0.7*p.windowHeight);
     canvas.parent('diskStackingCanvas');
     p.background(255);
-    
-    //cone = new StackingCone(0, -.8, 87, 0.075, 1);
-    
+        
     cone = new StackingCone(p, 0, -.8, 50, 0.08, 1);
       
     /*let iterations = 300;
@@ -63,6 +67,8 @@ var conep5Function = function( p ) {
     
     //update the graph
     resetGraph();
+
+    
     
   }
 
@@ -123,6 +129,7 @@ function resetGraph() {
   //update the graph
   parastichyGraph.data.datasets[0].data = cone.upFrontData;
   parastichyGraph.data.datasets[1].data = cone.downFrontData;
+  
   parastichyGraph.data.labels = Array.from(new Array(cone.upFrontData.length), (x, i) => i);
   parastichyGraph.update();
 }

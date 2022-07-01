@@ -1,9 +1,15 @@
-/**This class represents the Cone, which controls the disk stacking. It contains methods related to disk stacking calculations and tasks.*/
+/********************************************
+SURF 2022
+Copyright (c) 2022 Elaine Demetrion, Lisa Cao
+Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php 
+********************************************/
 
 /**
 Note:
 * rotateOntoCone makes some assumptions that could be problematic with larger angles
 */
+
+/**This class represents the Cone, which controls the disk stacking. It contains methods related to disk stacking calculations and tasks.*/
 
 class StackingCone {
   /* Constructor for the cone
@@ -780,7 +786,7 @@ Returns whichever is smallest. Note that returning negative numbers implies over
     return new Disk(this.p, vertexToDisk.x, vertexToDisk.y, this.diskRadius, disk.id);
   }
 
-  /************PARASTICHY FUNCTIONS *****************/
+  /************PARASTICHY FUNCTION *****************/
   /*Given two disks, this method determines if the line segment between them would be considered an "up" segment.
   @param leftDisk: the disk whose center is the left end of the segment.
   @param rightDisk: the disk whose center is the right end of the segment. */

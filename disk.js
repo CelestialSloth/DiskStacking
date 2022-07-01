@@ -1,3 +1,9 @@
+/********************************************
+SURF 2022
+Copyright (c) 2022 Elaine Demetrion
+Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php 
+********************************************/
+
 /**Represents one Disk*/
 class Disk {
   /*Constructor for the Disk
